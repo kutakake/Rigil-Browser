@@ -1,29 +1,33 @@
+
+
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 extern crate reqwest;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
+
+
     #[tauri::command]
 fn greet(name: &str) -> String {
     //let mut resp = reqwest::get("https://www.rust-lang.org").unwrap();
-    let body = reqwest::blocking::get(name.to_string()).unwrap();
+    let body = gethtml(name.to_string());
     //println!("{:?}", body);
-    let contents: Vec<char> = body.text().unwrap().chars().collect();
+    //let contents: Vec<char> = body.expect("REASON").text().unwrap().chars().collect();
+    let contents: Vec<char> = body.chars().collect();
     let mut formatted_text: String = "".to_string();
     //formatted_text = format!("{}{}", formatted_text, contents);
     let length = contents.len();
     let mut i: usize = 0;
-    let mut tag: String = "".to_string();
     let mut tagpoint: usize = 0;
     let mut href: String = "".to_string();
-    let mut tag_end_point: usize = 0;
     let mut button_number = 1;
     let mut index_link_vec: Vec<char> = name.to_string().chars().collect();
     let mut slashcount = 0;
     let mut index_link = "".to_string();
     let mut link_length = index_link_vec.len();
-    for i in 0..link_length-1 {
+
+    for i in 0..link_length-1 {//URLのうち左からTLDまでの部分を取得
         if i >= link_length {
             break;
         }
@@ -39,18 +43,17 @@ fn greet(name: &str) -> String {
         }
         index_link = format!("{}{}", index_link, index_link_vec[i]);
     }
+    index_link = format!("{}{}", index_link, index_link_vec[link_length-1]);
+
     
-    println!("{}", index_link);
-    //formatted_text = format!("{}{}", formatted_text, "<!doctype html>
-    //<html id=\"doc\">");
     formatted_text = format!("{}{}", formatted_text, "<script type=\"module\" src=\"/main.js\" defer></script>");
     loop {
         if i >= length {
             break;
         }
         if contents[i] == '<' {
-            tag = "".to_string();
-            tag_end_point = 0;
+            let mut tag: String = "".to_string();
+            let mut tag_end_point: usize = 0;
             loop {
                 tag = format!("{}{}", tag, contents[i]);
                 i += 1;
@@ -70,17 +73,23 @@ fn greet(name: &str) -> String {
                     if tagpoint >= tag_length {
                         break;
                     }
-                    
                     if tagvec[tagpoint] == '\"' {
                         loop {
                             tagpoint += 1;
-                            if tagvec[tagpoint] == '\"' {
+                            if tagpoint >= tag_length {
+                                break;
+                            }
+                            else if tagvec[tagpoint] == '\"' {
+                                break;
+                            }
+                            else if tagvec[tagpoint] == ' ' {
                                 break;
                             }
                             href = format!("{}{}", href, tagvec[tagpoint]);
                         }
                     }
                     tagpoint += 1;
+                    
                 }
                 if href.contains("http") {//hrefが相対パスだった場合今いる場所のURLを先頭につける
 
@@ -129,7 +138,6 @@ fn greet(name: &str) -> String {
                         window.addEventListener('DOMContentLoaded', () => {
                             greetInputEl = document.querySelector('#page_button_", button_number, "');
                             document.addEventListener('click', (e) => {
-                                document.write('aaaaaa');
                               e.preventDefault();
                               greet();
                             });
@@ -138,8 +146,6 @@ fn greet(name: &str) -> String {
                         formatted_text = format!("{}{}", formatted_text, button_script);
                         button_number  += 1;
                     }
-                    
-                    println!("{}", href);
                 }
             }
             else if tag.contains("<script") {
@@ -183,11 +189,18 @@ fn greet(name: &str) -> String {
             }
         }
         
-        formatted_text = format!("{}{}", formatted_text, contents[i]);
-        i += 1;
+        if i < length {
+            if contents[i] == '>' {
+                i += 1;
+                continue;
+            }
+            formatted_text = format!("{}{}", formatted_text, contents[i]);
+            i += 1;
+        }
+        else {
+            break;
+        }
     }
-    
-    //formatted_text = format!("{}{}", formatted_text, "</html>");
     println!("{}", formatted_text);
     formatted_text
     
@@ -198,4 +211,15 @@ fn main() {
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+fn gethtml(url: String) -> String {
+    let html = match reqwest::blocking::get(url) {
+        Ok(html) => return html.text().unwrap(),
+
+        Err(e) => {
+            println!("{}", e);
+            return "Oops!".to_string()
+        },
+    };
 }
