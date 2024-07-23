@@ -1,0 +1,15 @@
+{
+  "name": "Rigil",
+  "private": true,
+  "version": "0.1.1",
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1"
+  },
+  "dependencies": {
+    "@tauri-apps/plugin-shell": "^2.0.0-beta.6"
+  }
+}

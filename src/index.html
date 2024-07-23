@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" id="test">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="module" src="/main.js" defer></script>
+  </head>
+
+  <body id="body1">
+    <div class="container">
+      <h1>Welcome to the text browser on Tauri!</h1>
+      <div id="head_contents">
+        <form class="row" id="greet-form">
+          <button type="button", onclick="window.globalFunction.show_hide_tabs()">≡</button>
+          <input id="greet-input" placeholder="Enter URL..." />
+          <button type="button" onclick="javascript: {window.globalFunction.reflesh_page()}">↺</button>
+        </form>
+      </div>
+      <p id="greet-msg"></p>
+    </div>
+    <div id="tabs">
+    </div>
+    <div id="body2">
+      Text will be placed here
+    </div>
+  </body>
+  
+</html>
