@@ -15,8 +15,8 @@ fn greet(name: &str) -> String {
     if name == "" {
         return "".to_string();
     }
-    if name.contains("rigil:newtab") {
-        return "<title>New tab</title>".to_string();
+    if name.contains("rigil:newtab") || name == String::from("") {
+        return "<title>New tab</title>New tab".to_string();
     }
     let mut namestring: String = name.to_string();
     let namevec: Vec<char> = namestring.chars().collect();
@@ -157,13 +157,13 @@ fn greet(name: &str) -> String {
                             tagvec.pop();
                             tag_length -= 1;
                         }
-                        tag = "".to_string();
+                        tag = String::from("");
                         for ii in 2..tag_length - 1 {
                             tag = format!("{}{}", tag, tagvec[ii]);
                         }
 
                         //ハイパーリンク
-                        let mut hreftag = format!("{}{}{}{}", "".to_string(), "<a href=\"javascript:{document.getElementById('greet-input').value='", href, "';window.globalFunction.greet()}\">");
+                        let mut hreftag = format!("{}{}{}", "<a href=\"javascript:{document.getElementById('greet-input').value='", href, "';window.globalFunction.greet()}\">");
                         hreftag = format!("{}{}{}", hreftag, tag, "</a>");
                         formatted_text = format!("{}{}", formatted_text, hreftag);
                     }
@@ -221,18 +221,66 @@ fn greet(name: &str) -> String {
 
 #[tauri::command]
 fn save(status: String) -> u8 {
-    println!("{:?}", status);
+    //println!("{:?}", status);
     1
 }
 
 fn gethtml(url: &str) -> String {
     let client = reqwest::blocking::Client::new();
+    let mut query = vec![];
+    let url_length = url.len();
+    let url_vec: Vec<char> = url.chars().collect();
     //let mut queries: String = Default::default();
     if url.contains("?") {//クエリパラメータを取得
-
+        let mut i: usize = 0;
+        loop {
+            if url_vec[i] == '?' {
+                i += 1;
+                let mut key: String = String::from("");
+                let mut value: String = String::from("");
+                   loop {
+                        if url_vec[i] == '=' {
+                            i += 1;
+                            loop {
+                                if i >= url_length {
+                                    break;   
+                                }
+                                if url_vec[i] == '&' {
+                                    query.push((key.clone(), value.clone()));
+                                    key = String::from("");
+                                    value = String::from("");
+                                    break;
+                                    //push!(query, (&key, &value));
+                                }
+                                if url_vec[i] != '/' {
+                                    value = format!("{}{}", value, url_vec[i]);
+                                }
+                                i += 1;
+                            }  
+                        }
+                        if i >= url_length {
+                            query.push((key.clone(), value.clone()));
+                            break;   
+                        }
+                        if url_vec[i] != '&' {
+                            key = format!("{}{}", key, url_vec[i]);
+                        }
+                        i += 1;
+                   }
+            }
+            if i >= url_length {
+                break;   
+            }
+            i += 1;
+        }
     }
-    let mut query = [("a", "1")];
-    match client.get(url)
+    let mut url_without_query = String::from("");
+    let mut i = 0;
+    while i < url_length && url_vec[i] != '?' {
+        url_without_query = format!("{}{}", url_without_query, url_vec[i]);
+        i += 1;
+    }
+    match client.get(url_without_query)
         .query(&query)
         .send()
      {
@@ -262,5 +310,5 @@ fn is_formatted(tag: String) -> String {
             }
         }
     }
-    "".to_string()
+    String::from("")
 }
