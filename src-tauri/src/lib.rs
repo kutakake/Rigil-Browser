@@ -220,7 +220,7 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn save(status: HashMap<String, Vec<String>>) -> u8 {
+fn save(status: String) -> u8 {
     println!("{:?}", status);
     1
 }
