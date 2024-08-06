@@ -1,10 +1,9 @@
-
 use std::{collections::HashMap, ffi::c_void};
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet, save])
+        .invoke_handler(tauri::generate_handler![greet, read, save])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -22,27 +21,27 @@ fn greet(name: &str) -> String {
     let namevec: Vec<char> = namestring.chars().collect();
     let mut firsteight: String = "".to_string();
     let name_length: usize = namestring.len();
-    if name_length >= 8 {//URLの最初の8文字までを取得
+    if name_length >= 8 {
+        //URLの最初の8文字までを取得
         for i in 0..8 {
             firsteight = format!("{}{}", firsteight, namevec[i].to_string());
         }
-        if !(firsteight.contains("http://")) && !(firsteight.contains("https://")) {//urlのはじめにhttp://かhttps://がなければ追加する
+        if !(firsteight.contains("http://")) && !(firsteight.contains("https://")) {
+            //urlのはじめにhttp://かhttps://がなければ追加する
             namestring = format!("{}{}", "https://", namestring);
         }
-    }
-    else {
+    } else {
         for i in 0..name_length {
             firsteight = format!("{}{}", firsteight, namevec[i].to_string());
         }
-        if !(firsteight.contains("http://")) && !(firsteight.contains("https://")) {//urlのはじめにhttp://かhttps://がなければ追加する
+        if !(firsteight.contains("http://")) && !(firsteight.contains("https://")) {
+            //urlのはじめにhttp://かhttps://がなければ追加する
             namestring = format!("{}{}", "https://", namestring);
         }
     }
-    if namevec[name_length-1] != '/' {
+    if namevec[name_length - 1] != '/' {
         namestring = format!("{}{}", namestring, "/");
     }
-
-    
 
     let body: String = gethtml(&namestring);
     let contents: Vec<char> = body.chars().collect();
@@ -116,9 +115,9 @@ fn greet(name: &str) -> String {
                             } else if tagvec[tagpoint] == '\"' {
                                 done = true;
                                 break;
-                            }/* else if tagvec[tagpoint] == ' ' {
-                                break;
-                            }*/
+                            } /* else if tagvec[tagpoint] == ' ' {
+                                  break;
+                              }*/
                             href = format!("{}{}", href, tagvec[tagpoint]);
                         }
                         if done {
@@ -163,12 +162,18 @@ fn greet(name: &str) -> String {
                         }
 
                         //ハイパーリンク
-                        let mut hreftag = format!("{}{}{}", "<a href=\"javascript:{document.getElementById('greet-input').value='", href, "';window.globalFunction.greet()}\">");
+                        let mut hreftag = format!(
+                            "{}{}{}",
+                            "<a href=\"javascript:{document.getElementById('greet-input').value='",
+                            href,
+                            "';window.globalFunction.greet()}\">"
+                        );
                         hreftag = format!("{}{}{}", hreftag, tag, "</a>");
                         formatted_text = format!("{}{}", formatted_text, hreftag);
                     }
                 }
-            } else if tag.contains("<script") {//scriptはスキップする
+            } else if tag.contains("<script") {
+                //scriptはスキップする
                 loop {
                     if i >= length {
                         break;
@@ -181,7 +186,8 @@ fn greet(name: &str) -> String {
                     }
                     i += 1;
                 }
-            } else if tag.contains("<style") {//styleもスキップする
+            } else if tag.contains("<style") {
+                //styleもスキップする
                 loop {
                     if i >= length {
                         break;
@@ -194,7 +200,8 @@ fn greet(name: &str) -> String {
                     }
                     i += 1;
                 }
-            } else {//is_formatted()はリストに挙げられたタグがあれば入力の末尾に">"をつけて返し、なければ""を返す
+            } else {
+                //is_formatted()はリストに挙げられたタグがあれば入力の末尾に">"をつけて返し、なければ""を返す
                 formatted_text = format!("{}{}", formatted_text, is_formatted(tag));
             }
             if i < length {
@@ -215,14 +222,36 @@ fn greet(name: &str) -> String {
             break;
         }
     }
-    
+
     formatted_text
 }
 
+use std::fs::File;
+use std::io::{BufRead, BufReader, Read};
+use std::path::Path;
 #[tauri::command]
-fn save(status: String) -> u8 {
-    //println!("{:?}", status);
-    1
+fn read() -> String {
+    let path = "status.txt";
+    if !Path::is_file(Path::new(path)) {
+        File::create(path);
+    }
+    let mut f = File::open(path);
+
+    let mut contents = String::new();
+
+    f.expect("somthing went wrong").read_to_string(&mut contents);
+
+    contents
+}
+
+use std::io::{Write, BufWriter};
+#[tauri::command]
+fn save(tabs: String) -> String {
+    let path = "status.txt";
+    let f = File::create(path).expect("a");
+    let mut bfw = BufWriter::new(f);
+    let _ = bfw.write(tabs.as_bytes()).expect("a");
+    String::from("done")
 }
 
 fn gethtml(url: &str) -> String {
@@ -231,45 +260,46 @@ fn gethtml(url: &str) -> String {
     let url_length = url.len();
     let url_vec: Vec<char> = url.chars().collect();
     //let mut queries: String = Default::default();
-    if url.contains("?") {//クエリパラメータを取得
+    if url.contains("?") {
+        //クエリパラメータを取得
         let mut i: usize = 0;
         loop {
             if url_vec[i] == '?' {
                 i += 1;
                 let mut key: String = String::from("");
                 let mut value: String = String::from("");
-                   loop {
-                        if url_vec[i] == '=' {
-                            i += 1;
-                            loop {
-                                if i >= url_length {
-                                    break;   
-                                }
-                                if url_vec[i] == '&' {
-                                    query.push((key.clone(), value.clone()));
-                                    key = String::from("");
-                                    value = String::from("");
-                                    break;
-                                    //push!(query, (&key, &value));
-                                }
-                                if url_vec[i] != '/' {
-                                    value = format!("{}{}", value, url_vec[i]);
-                                }
-                                i += 1;
-                            }  
-                        }
-                        if i >= url_length {
-                            query.push((key.clone(), value.clone()));
-                            break;   
-                        }
-                        if url_vec[i] != '&' {
-                            key = format!("{}{}", key, url_vec[i]);
-                        }
+                loop {
+                    if url_vec[i] == '=' {
                         i += 1;
-                   }
+                        loop {
+                            if i >= url_length {
+                                break;
+                            }
+                            if url_vec[i] == '&' {
+                                query.push((key.clone(), value.clone()));
+                                key = String::from("");
+                                value = String::from("");
+                                break;
+                                //push!(query, (&key, &value));
+                            }
+                            if url_vec[i] != '/' {
+                                value = format!("{}{}", value, url_vec[i]);
+                            }
+                            i += 1;
+                        }
+                    }
+                    if i >= url_length {
+                        query.push((key.clone(), value.clone()));
+                        break;
+                    }
+                    if url_vec[i] != '&' {
+                        key = format!("{}{}", key, url_vec[i]);
+                    }
+                    i += 1;
+                }
             }
             if i >= url_length {
-                break;   
+                break;
             }
             i += 1;
         }
@@ -280,33 +310,36 @@ fn gethtml(url: &str) -> String {
         url_without_query = format!("{}{}", url_without_query, url_vec[i]);
         i += 1;
     }
-    match client.get(url_without_query)
-        .query(&query)
-        .send()
-     {
+    match client.get(url_without_query).query(&query).send() {
         Ok(html) => return html.text().unwrap(),
 
         Err(e) => {
             println!("{}", e);
-            return format!("{}{}", "Oops! Something is wrong. The entered url is: ", url);
+            return format!(
+                "{}{}",
+                "Oops! Something is wrong. The entered url is: ", url
+            );
         }
     };
 }
 
 fn is_formatted(tag: String) -> String {
     //title, br, h, b, i, ul, li, ol
-    let tags: Vec<&str> = vec!["<title", "</title", "<br", "<br /", "<h1", "</h1", "<h2", "</h2", "<h3", "</h3", "<h4", "</h4", "<h5", "</h5", "<h6", "</h6", "<b>", "</b>", "<i>", "</i>", "<li>", "<li ", "</li>", "<ul", "</ul", "<ol", "<ol ", "</ol", ];
+    let tags: Vec<&str> = vec![
+        "<title", "</title", "<br", "<br /", "<h1", "</h1", "<h2", "</h2", "<h3", "</h3", "<h4",
+        "</h4", "<h5", "</h5", "<h6", "</h6", "<b>", "</b>", "<i>", "</i>", "<li>", "<li ",
+        "</li>", "<ul", "</ul", "<ol", "<ol ", "</ol",
+    ];
     let length_tags: usize = tags.len();
-    for i in 0..length_tags-1 {
+    for i in 0..length_tags - 1 {
         if tag.contains(tags[i]) {
             let output: String = tags[i].to_string();
             let vec_output: Vec<char> = output.chars().collect();
             let length_output: usize = output.len();
-            if vec_output[length_output-1] == '>' {
-                return output
-            }
-            else {
-                return format!("{}{}", output, ">")
+            if vec_output[length_output - 1] == '>' {
+                return output;
+            } else {
+                return format!("{}{}", output, ">");
             }
         }
     }
