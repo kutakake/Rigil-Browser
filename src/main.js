@@ -11,6 +11,13 @@ let tabs_visibility_interval;
 let tab_history = ["New tab"];
 const tab_element = document.getElementById("tabs");
 const body_element = document.getElementById("body2");
+
+const newtab = {
+  title: ["New tab"],
+  urls: ["rigil:newtab"],
+  contents: ["New tab"],
+  page_number: [0],
+};
 //alert(localStorage.getItem("tabs"));
 /*
 localStorage.removeItem("tabs");
@@ -24,12 +31,7 @@ let status = await read_status();
   //current_page_number = JSON.parse(localStorage.getItem("current_page_number"));
 //} else {
 if (status == "") {
-  tabs.push({
-    title: ["New tab"],
-    urls: ["rigil:newtab"],
-    contents: ["New tab"],
-    page_number: [current_page_number.toString()],
-  });
+  tabs.push(newtab);
   save_status();
 } else {
   tabs = JSON.parse(status);
@@ -92,6 +94,12 @@ document.querySelector("#greet-form").addEventListener("click", (e) => {
   if (greetInputEl.value == "rigil:newtab") {
     greetInputEl.value = "";
   }
+});
+
+document.querySelector("#hreftag").addEventListener("click", (e) => {
+	e.preventDefault();
+  greetInputEl.value = e.href;
+  greet();
 });
 
 window.addEventListener("mouseup", (e) => {
@@ -199,12 +207,7 @@ function add_tab() {
   current_page_url = "rigil:newtab";
   current_tab_number = tabs.length;
 
-  tabs.push({
-    title: ["New tab"],
-    urls: ["rigil:newtab"],
-    contents: ["New tab"],
-    page_number: 0,
-  });
+  tabs.push(newtab);
   document.title = "New tab";
   body_element.innerHTML = "";
   tab_element.innerHTML =
@@ -221,14 +224,7 @@ function add_tab() {
 function remove_tab(tab_number) {
   tabs.splice(tab_number, 1);
   if (tabs.length == 0) {
-    tabs = [
-      {
-        title: ["New tab"],
-        urls: ["rigil:newtab"],
-        contents: ["New tab"],
-        page_number: 0,
-      },
-    ];
+    tabs = [newtab];
   } else if (tab_number < current_tab_number) {
     current_tab_number--;
   } else if (tab_number == current_tab_number) {

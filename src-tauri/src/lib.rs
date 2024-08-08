@@ -163,8 +163,10 @@ fn greet(name: &str) -> String {
 
                         //ハイパーリンク
                         let mut hreftag = format!(
-                            "{}{}{}",
-                            "<a href=\"javascript:{document.getElementById('greet-input').value='",
+                            "{}{}{}{}{}",
+                            "<a id=\"hreftag\" href=\"",
+                            href,
+                            "\" onclick=\"javascript:{document.getElementById('greet-input').value='",
                             href,
                             "';window.globalFunction.greet()}\">"
                         );
@@ -222,7 +224,6 @@ fn greet(name: &str) -> String {
             break;
         }
     }
-
     formatted_text
 }
 
@@ -239,7 +240,7 @@ fn read() -> String {
 
     let mut contents = String::new();
 
-    f.expect("somthing went wrong").read_to_string(&mut contents);
+    f.expect("something went wrong").read_to_string(&mut contents);
 
     contents
 }
@@ -317,7 +318,7 @@ fn gethtml(url: &str) -> String {
             println!("{}", e);
             return format!(
                 "{}{}",
-                "Oops! Something is wrong. The entered url is: ", url
+                "Oops! Something went wrong. The entered url is: ", url
             );
         }
     };
