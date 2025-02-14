@@ -163,14 +163,21 @@ fn greet(name: &str) -> String {
 
                         //ハイパーリンク
                         let mut hreftag = format!(
+
+                            "{}{}{}",
+                            "<button id=\"hreftag\" onclick=\"javascript:{document.getElementById('greet-input').value='",
+                            href,
+                            "';window.globalFunction.greet()}\">"
+                            /*
                             "{}{}{}{}{}",
                             "<a id=\"hreftag\" href=\"",
                             href,
                             "\" onclick=\"javascript:{document.getElementById('greet-input').value='",
                             href,
                             "';window.globalFunction.greet()}\">"
+                            */
                         );
-                        hreftag = format!("{}{}{}", hreftag, tag, "</a>");
+                        hreftag = format!("{}{}{}", hreftag, tag, "</button>");
                         formatted_text = format!("{}{}", formatted_text, hreftag);
                     }
                 }
@@ -240,12 +247,13 @@ fn read() -> String {
 
     let mut contents = String::new();
 
-    f.expect("something went wrong").read_to_string(&mut contents);
+    f.expect("something went wrong")
+        .read_to_string(&mut contents);
 
     contents
 }
 
-use std::io::{Write, BufWriter};
+use std::io::{BufWriter, Write};
 #[tauri::command]
 fn save(tabs: String) -> String {
     let path = "status.txt";
