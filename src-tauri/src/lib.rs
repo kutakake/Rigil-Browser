@@ -3,7 +3,7 @@ use std::{collections::HashMap, ffi::c_void};
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet, read, save])
+        .invoke_handler(tauri::generate_handler![greet])//, read, save])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -233,7 +233,7 @@ fn greet(name: &str) -> String {
     }
     formatted_text
 }
-
+/*
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
 use std::path::Path;
@@ -262,7 +262,7 @@ fn save(tabs: String) -> String {
     let _ = bfw.write(tabs.as_bytes()).expect("a");
     String::from("done")
 }
-
+*/
 fn gethtml(url: &str) -> String {
     let client = reqwest::blocking::Client::new();
     let mut query = vec![];

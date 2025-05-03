@@ -25,23 +25,22 @@ localStorage.removeItem("tab_number");
 localStorage.removeItem("page_number");
 */
 //if (localStorage.getItem("tabs") != null) {
-let status = await read_status();
+  let status = await read_status();
 //tabs = JSON.parse(await read_status());//localStorage.getItem("tabs"));
 //current_tab_number = JSON.parse(localStorage.getItem("current_tab_number"));
 //current_page_number = JSON.parse(localStorage.getItem("current_page_number"));
 //} else {
-if (status == "") {
-  tabs.push(newtab);
-  save_status();
-} else {
-  tabs = JSON.parse(status);
-  current_tab_number = JSON.parse(localStorage.getItem("tab_number"));
-  current_page_number = JSON.parse(localStorage.getItem("page_number"));
-}
-tab_history = tabs[current_tab_number].contents; //今開いているタブの履歴。各要素はそれぞれのページのHTML
-var url_history = tabs[current_tab_number].urls;
-body_element.innerHTML = tab_history[tab_history.length - 1];
-
+  if (status == "") {
+    tabs.push(newtab);
+    save_status();
+  } else {
+    tabs = JSON.parse(status);
+    current_tab_number = JSON.parse(localStorage.getItem("tab_number"));
+    current_page_number = JSON.parse(localStorage.getItem("page_number"));
+  }
+  tab_history = tabs[current_tab_number].contents; //今開いているタブの履歴。各要素はそれぞれのページのHTML
+  var url_history = tabs[current_tab_number].urls;
+  body_element.innerHTML = tab_history[tab_history.length - 1];
 async function change_tab_number(move_number) {
   //current_page_numberとtabs内のpage_numberは常に同じなのでこの関数で同時に書き換える
   current_page_number += move_number;
@@ -240,35 +239,40 @@ function show_hide_tabs() {
 */
 
 function show_hide_tabs() {
-  if (tabs_shown == 0) {
-    tabs_shown = 1;
-    let tabs_string =
-      "<div id='tab_control'><button type='button' onclick='window.globalFunction.show_hide_tabs()'>≡</button><button type='button' onclick='window.globalFunction.add_tab()'>+</button></div><br>";
-    for (let i = 0; i < tabs.length; i++) {
-      const tabTitle = tabs[i].title[tabs[i].page_number] || "New tab";
-      tabs_string +=
-        "<button onclick='window.globalFunction.remove_tab(" +
-        i +
-        ")'>×</button><br><button onclick='window.globalFunction.switch_tab(" +
-        i +
-        ")'>" +
-        "<nobr>" +
-        tabTitle +
-        "</nobr>" +
-        "</button><br>";
+  try {
+    if (tabs_shown == 0) {
+      tabs_shown = 1;
+      let tabs_string =
+          "<div id='tab_control'><button type='button' onclick='window.globalFunction.show_hide_tabs()'>≡</button><button type='button' onclick='window.globalFunction.add_tab()'>+</button></div><br>";
+      for (let i = 0; i < tabs.length; i++) {
+        const tabTitle = tabs[i].title[tabs[i].page_number] || "New tab";
+        tabs_string +=
+            "<button onclick='window.globalFunction.remove_tab(" +
+            i +
+            ")'>×</button><br><button onclick='window.globalFunction.switch_tab(" +
+            i +
+            ")'>" +
+            "<nobr>" +
+            tabTitle +
+            "</nobr>" +
+            "</button><br>";
+      }
+      tab_element.innerHTML = tabs_string;
+      tab_element.style.visibility = "visible";
+      tab_element.style.opacity = "1";
+      tab_element.style.transition = "opacity 0.3s ";
+    } else {
+      tabs_shown = 0;
+      tab_element.style.opacity = "0";
+      tab_element.style.transition = "opacity 0.3s ";
+      tabs_visibility_interval = window.setInterval(
+          collapse_tabs_visibility,
+          100,
+      );
     }
-    tab_element.innerHTML = tabs_string;
-    tab_element.style.visibility = "visible";
-    tab_element.style.opacity = "1";
-    tab_element.style.transition = "opacity 0.3s ";
-  } else {
-    tabs_shown = 0;
-    tab_element.style.opacity = "0";
-    tab_element.style.transition = "opacity 0.3s ";
-    tabs_visibility_interval = window.setInterval(
-      collapse_tabs_visibility,
-      100,
-    );
+  } catch(e) {
+    alert(e);
+    document.getElementById("errormessage").innerHTML = e;
   }
 }
 /*
@@ -443,14 +447,17 @@ function remove_tab(tab_number) {
 }
 
 async function read_status() {
-  return await invoke("read");
+  return localStorage.getItem("tabs");
+  //return await invoke("read");
 }
 
 async function save_status() {
   tabs[current_tab_number].contents = tab_history;
   localStorage.setItem("tab_number", JSON.stringify(current_tab_number));
   localStorage.setItem("page_number", JSON.stringify(current_page_number));
-  await invoke("save", { tabs: JSON.stringify(tabs) });
+
+  localStorage.setItem("tabs", JSON.stringify(tabs));
+  //await invoke("save", { tabs: JSON.stringify(tabs) });
 }
 /*
 async function is_empty_content() {
@@ -475,7 +482,7 @@ async function is_empty_content() {
     }
   }
 }
-
+/*
 window.globalFunction = {
   greet: greet,
   reflesh_page: reflesh_page,
@@ -484,3 +491,11 @@ window.globalFunction = {
   add_tab: add_tab,
   remove_tab: remove_tab,
 };
+*/
+window.globalFunction = [];
+window.globalFunction.greet = greet;
+window.globalFunction.reflesh_page = reflesh_page;
+window.globalFunction.show_hide_tabs = show_hide_tabs;
+window.globalFunction.switch_tab = switch_tab;
+window.globalFunction.add_tab = add_tab;
+window.globalFunction.remove_tab = remove_tab;
