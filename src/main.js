@@ -511,3 +511,178 @@ window.globalFunction.show_hide_tabs = show_hide_tabs;
 window.globalFunction.switch_tab = switch_tab;
 window.globalFunction.add_tab = add_tab;
 window.globalFunction.remove_tab = remove_tab;
+
+// 設定画面の機能
+function open_settings() {
+  const settingsScreen = document.getElementById("settings_screen");
+  settingsScreen.style.display = "flex";
+  
+  // 設定値を読み込み
+  load_settings();
+  
+  // メニューを閉じる
+  if (tabs_shown == 1) {
+    show_hide_tabs();
+  }
+}
+
+function close_settings() {
+  const settingsScreen = document.getElementById("settings_screen");
+  settingsScreen.style.display = "none";
+}
+
+function load_settings() {
+  // テーマ設定
+  const theme = localStorage.getItem("theme") || "auto";
+  document.getElementById("theme_select").value = theme;
+  
+  // フォントサイズ設定
+  const fontSize = localStorage.getItem("font_size") || "16";
+  document.getElementById("font_size_slider").value = fontSize;
+  document.getElementById("font_size_value").textContent = fontSize + "px";
+  
+  // タブ自動保存設定
+  const autoSaveTabs = localStorage.getItem("auto_save_tabs") === "true";
+  document.getElementById("auto_save_tabs").checked = autoSaveTabs;
+  
+  // 画像表示設定
+  const showImages = localStorage.getItem("show_images") !== "false";
+  document.getElementById("show_images").checked = showImages;
+}
+
+function save_settings() {
+  // テーマ設定
+  const theme = document.getElementById("theme_select").value;
+  localStorage.setItem("theme", theme);
+  apply_theme(theme);
+  
+  // フォントサイズ設定
+  const fontSize = document.getElementById("font_size_slider").value;
+  localStorage.setItem("font_size", fontSize);
+  apply_font_size(fontSize);
+  
+  // タブ自動保存設定
+  const autoSaveTabs = document.getElementById("auto_save_tabs").checked;
+  localStorage.setItem("auto_save_tabs", autoSaveTabs);
+  
+  // 画像表示設定
+  const showImages = document.getElementById("show_images").checked;
+  localStorage.setItem("show_images", showImages);
+}
+
+function apply_theme(theme) {
+  const html = document.documentElement;
+  if (theme === "light") {
+    html.style.colorScheme = "light";
+  } else if (theme === "dark") {
+    html.style.colorScheme = "dark";
+  } else {
+    html.style.colorScheme = "auto";
+  }
+}
+
+function apply_font_size(fontSize) {
+  document.documentElement.style.fontSize = fontSize + "px";
+}
+
+function clear_history() {
+  if (confirm("履歴をクリアしますか？この操作は元に戻せません。")) {
+    // 全タブの履歴をクリア
+    tabs.forEach(tab => {
+      tab.title = ["New tab"];
+      tab.urls = ["rigil:newtab"];
+      tab.contents = ["New tab"];
+      tab.page_number = ["0"];
+    });
+    
+    // 現在のタブ状態をリセット
+    current_page_number = 0;
+    current_page_url = "rigil:newtab";
+    tab_history = ["New tab"];
+    url_history = ["rigil:newtab"];
+    
+    // 画面を更新
+    body_element.innerHTML = "New tab";
+    document.getElementById("greet-input").value = "rigil:newtab";
+    
+    save_status();
+    alert("履歴がクリアされました。");
+  }
+}
+
+function clear_cache() {
+  if (confirm("キャッシュをクリアしますか？")) {
+    // ローカルストレージから設定以外を削除
+    const theme = localStorage.getItem("theme");
+    const fontSize = localStorage.getItem("font_size");
+    const autoSaveTabs = localStorage.getItem("auto_save_tabs");
+    const showImages = localStorage.getItem("show_images");
+    
+    localStorage.clear();
+    
+    // 設定を復元
+    if (theme) localStorage.setItem("theme", theme);
+    if (fontSize) localStorage.setItem("font_size", fontSize);
+    if (autoSaveTabs) localStorage.setItem("auto_save_tabs", autoSaveTabs);
+    if (showImages) localStorage.setItem("show_images", showImages);
+    
+    alert("キャッシュがクリアされました。");
+  }
+}
+
+// 設定画面のイベントリスナーを設定
+document.addEventListener("DOMContentLoaded", function() {
+  // テーマ変更
+  const themeSelect = document.getElementById("theme_select");
+  if (themeSelect) {
+    themeSelect.addEventListener("change", save_settings);
+  }
+  
+  // フォントサイズ変更
+  const fontSizeSlider = document.getElementById("font_size_slider");
+  if (fontSizeSlider) {
+    fontSizeSlider.addEventListener("input", function() {
+      document.getElementById("font_size_value").textContent = this.value + "px";
+      save_settings();
+    });
+  }
+  
+  // チェックボックス変更
+  const autoSaveCheckbox = document.getElementById("auto_save_tabs");
+  if (autoSaveCheckbox) {
+    autoSaveCheckbox.addEventListener("change", save_settings);
+  }
+  
+  const showImagesCheckbox = document.getElementById("show_images");
+  if (showImagesCheckbox) {
+    showImagesCheckbox.addEventListener("change", save_settings);
+  }
+  
+  // 設定画面の背景クリックで閉じる
+  const settingsScreen = document.getElementById("settings_screen");
+  if (settingsScreen) {
+    settingsScreen.addEventListener("click", function(e) {
+      if (e.target === settingsScreen) {
+        close_settings();
+      }
+    });
+  }
+  
+  // 初期設定を適用
+  const savedTheme = localStorage.getItem("theme") || "auto";
+  const savedFontSize = localStorage.getItem("font_size") || "16";
+  apply_theme(savedTheme);
+  apply_font_size(savedFontSize);
+});
+
+window.globalFunction = [];
+window.globalFunction.greet = greet;
+window.globalFunction.reflesh_page = reflesh_page;
+window.globalFunction.show_hide_tabs = show_hide_tabs;
+window.globalFunction.switch_tab = switch_tab;
+window.globalFunction.add_tab = add_tab;
+window.globalFunction.remove_tab = remove_tab;
+window.globalFunction.open_settings = open_settings;
+window.globalFunction.close_settings = close_settings;
+window.globalFunction.clear_history = clear_history;
+window.globalFunction.clear_cache = clear_cache;

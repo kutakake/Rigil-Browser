@@ -19,6 +19,72 @@
     <div id="errormessage">
     </div>
     
+    <!-- 設定画面 -->
+    <div id="settings_screen" style="display: none;">
+      <div class="settings_container">
+        <div class="settings_header">
+          <h2>設定</h2>
+          <button type="button" onclick="window.globalFunction.close_settings()" class="close_button">×</button>
+        </div>
+        <div class="settings_content">
+          <div class="settings_section">
+            <h3>表示設定</h3>
+            <div class="setting_item">
+              <label>テーマ</label>
+              <select id="theme_select">
+                <option value="auto">自動</option>
+                <option value="light">ライト</option>
+                <option value="dark">ダーク</option>
+              </select>
+            </div>
+            <div class="setting_item">
+              <label>フォントサイズ</label>
+              <input type="range" id="font_size_slider" min="12" max="24" value="16">
+              <span id="font_size_value">16px</span>
+            </div>
+          </div>
+          
+          <div class="settings_section">
+            <h3>ブラウザ設定</h3>
+            <div class="setting_item">
+              <label>
+                <input type="checkbox" id="auto_save_tabs">
+                タブの自動保存
+              </label>
+            </div>
+            <div class="setting_item">
+              <label>
+                <input type="checkbox" id="show_images">
+                画像を表示
+              </label>
+            </div>
+          </div>
+          
+          <div class="settings_section">
+            <h3>プライバシー</h3>
+            <div class="setting_item">
+              <button type="button" onclick="window.globalFunction.clear_history()" class="danger_button">
+                履歴をクリア
+              </button>
+            </div>
+            <div class="setting_item">
+              <button type="button" onclick="window.globalFunction.clear_cache()" class="danger_button">
+                キャッシュをクリア
+              </button>
+            </div>
+          </div>
+          
+          <div class="settings_section">
+            <h3>情報</h3>
+            <div class="setting_item">
+              <label>バージョン</label>
+              <span>Rigil v1.0.0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <!-- URLバー、メニューボタン、リフレッシュボタンを画面下部に配置 -->
     <div id="bottom_toolbar">
       <!-- 通常時のツールバー -->
@@ -37,6 +103,7 @@
         <div class="row">
           <button type="button" onclick="window.globalFunction.show_hide_tabs()">≡</button>
           <button type="button" onclick="window.globalFunction.add_tab()" id="add_tab_button">+ 新しいタブ</button>
+          <button type="button" onclick="window.globalFunction.open_settings()" id="settings_button">⚙</button>
         </div>
       </div>
     </div>
