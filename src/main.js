@@ -632,20 +632,33 @@ function apply_theme(preset, baseColor, accentColor, textColor) {
     // 明度を計算してボタンのホバー色を生成
     const accentHover = adjustBrightness(accentColor, -20);
     const accentActive = adjustBrightness(accentColor, -40);
+    const toolbarColor = adjustBrightness(baseColor, 15); // ベースより15%明るく
     
     root.style.setProperty('--accent-hover', accentHover);
     root.style.setProperty('--accent-active', accentActive);
+    root.style.setProperty('--toolbar-color', toolbarColor);
     
-    // CSSカスタムプロパティを使用してスタイルを適用
+    // htmlとbodyの両方に背景色と文字色を適用
+    root.style.backgroundColor = baseColor;
+    root.style.color = textColor;
     document.body.style.backgroundColor = baseColor;
     document.body.style.color = textColor;
     
-    // ツールバーの背景色も変更
+    // ツールバーの背景色を明るく設定
     const toolbar = document.getElementById("bottom_toolbar");
     if (toolbar) {
-      toolbar.style.backgroundColor = baseColor;
-      toolbar.style.borderTopColor = adjustBrightness(baseColor, -30);
+      toolbar.style.backgroundColor = toolbarColor;
+      toolbar.style.borderTopColor = adjustBrightness(toolbarColor, -20);
     }
+    
+    // タブ画面の背景色も変更
+    const tabsElement = document.getElementById("tabs");
+    if (tabsElement) {
+      tabsElement.style.backgroundColor = baseColor;
+    }
+    
+    // UIボタンにアクセントカラーを適用
+    applyAccentColorToButtons(accentColor, accentHover, accentActive);
     
     root.style.colorScheme = "light";
   } else if (preset === "light") {
@@ -663,22 +676,79 @@ function apply_theme(preset, baseColor, accentColor, textColor) {
   }
 }
 
+function applyAccentColorToButtons(accentColor, accentHover, accentActive) {
+  // 新しいタブボタン
+  const addTabButton = document.getElementById("add_tab_button");
+  if (addTabButton) {
+    addTabButton.style.backgroundColor = accentColor;
+    addTabButton.style.borderColor = accentColor;
+  }
+  
+  // 設定ボタン
+  const settingsButton = document.getElementById("settings_button");
+  if (settingsButton) {
+    settingsButton.style.backgroundColor = adjustBrightness(accentColor, -30);
+    settingsButton.style.borderColor = adjustBrightness(accentColor, -30);
+  }
+  
+  // メニューボタンと更新ボタン
+  const menuButtons = document.querySelectorAll("#head_contents button, #menu_toolbar button:first-child");
+  menuButtons.forEach(button => {
+    if (button.id !== "add_tab_button" && button.id !== "settings_button") {
+      button.style.backgroundColor = adjustBrightness(accentColor, -20);
+      button.style.borderColor = adjustBrightness(accentColor, -20);
+      button.style.color = "white";
+    }
+  });
+  
+  // フォームのsubmitボタンなど
+  const formButtons = document.querySelectorAll("button[type='submit'], .reset_button");
+  formButtons.forEach(button => {
+    button.style.backgroundColor = accentColor;
+    button.style.borderColor = accentColor;
+    button.style.color = "white";
+  });
+}
+
 function resetCustomStyles() {
   const root = document.documentElement;
-  const properties = ['--base-color', '--accent-color', '--text-color', '--accent-hover', '--accent-active'];
+  const properties = ['--base-color', '--accent-color', '--text-color', '--accent-hover', '--accent-active', '--toolbar-color'];
   
   properties.forEach(prop => {
     root.style.removeProperty(prop);
   });
   
+  // htmlとbodyの背景色と文字色をリセット
+  root.style.removeProperty('background-color');
+  root.style.removeProperty('color');
   document.body.style.removeProperty('background-color');
   document.body.style.removeProperty('color');
   
+  // ツールバーの背景色をリセット
   const toolbar = document.getElementById("bottom_toolbar");
   if (toolbar) {
     toolbar.style.removeProperty('background-color');
     toolbar.style.removeProperty('border-top-color');
   }
+  
+  // タブ画面の背景色をリセット
+  const tabsElement = document.getElementById("tabs");
+  if (tabsElement) {
+    tabsElement.style.removeProperty('background-color');
+  }
+  
+  // ボタンのカスタムスタイルをリセット
+  resetButtonStyles();
+}
+
+function resetButtonStyles() {
+  // 全てのボタンのカスタムスタイルをリセット
+  const allButtons = document.querySelectorAll("button");
+  allButtons.forEach(button => {
+    button.style.removeProperty('background-color');
+    button.style.removeProperty('border-color');
+    button.style.removeProperty('color');
+  });
 }
 
 function adjustBrightness(hex, percent) {
