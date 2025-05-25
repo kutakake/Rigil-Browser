@@ -25,3 +25,4 @@ dist-ssr
 # gen
 /src-tauri/gen/
 src-tauri/status.txt
+.cursorrules
