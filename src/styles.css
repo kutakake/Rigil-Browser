@@ -335,6 +335,51 @@ button {
     margin-right: 8px;
 }
 
+.color_input_group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.color_input_group input[type="color"] {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.color_input_group input[type="text"] {
+    width: 80px;
+    padding: 6px 8px;
+    font-family: monospace;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.reset_button {
+    background-color: #666;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.reset_button:hover {
+    background-color: #555;
+}
+
+.color_settings {
+    margin-left: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fafafa;
+}
+
 .danger_button {
     background-color: #ff4444;
     color: white;
@@ -393,6 +438,30 @@ button {
     
     .setting_item input[type="range"] {
         background-color: #444;
+    }
+    
+    .color_settings {
+        background-color: #3a3a3a;
+        border: 1px solid #555;
+    }
+    
+    .color_input_group input[type="color"] {
+        border: 1px solid #666;
+    }
+    
+    .color_input_group input[type="text"] {
+        background-color: #444;
+        color: #f6f6f6;
+        border: 1px solid #666;
+    }
+    
+    .reset_button {
+        background-color: #777;
+        color: #f6f6f6;
+    }
+    
+    .reset_button:hover {
+        background-color: #888;
     }
 }
 

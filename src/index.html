@@ -30,12 +30,41 @@
           <div class="settings_section">
             <h3>表示設定</h3>
             <div class="setting_item">
-              <label>テーマ</label>
-              <select id="theme_select">
-                <option value="auto">自動</option>
+              <label>テーマプリセット</label>
+              <select id="theme_preset">
+                <option value="custom">カスタム</option>
                 <option value="light">ライト</option>
                 <option value="dark">ダーク</option>
+                <option value="auto">自動</option>
               </select>
+            </div>
+            <div class="color_settings">
+              <div class="setting_item">
+                <label>ベースカラー（背景色）</label>
+                <div class="color_input_group">
+                  <input type="color" id="base_color" value="#f6f6f6">
+                  <input type="text" id="base_color_text" value="#f6f6f6" placeholder="#f6f6f6">
+                </div>
+              </div>
+              <div class="setting_item">
+                <label>アクセントカラー（ボタン等）</label>
+                <div class="color_input_group">
+                  <input type="color" id="accent_color" value="#4CAF50">
+                  <input type="text" id="accent_color_text" value="#4CAF50" placeholder="#4CAF50">
+                </div>
+              </div>
+              <div class="setting_item">
+                <label>文字色</label>
+                <div class="color_input_group">
+                  <input type="color" id="text_color" value="#0f0f0f">
+                  <input type="text" id="text_color_text" value="#0f0f0f" placeholder="#0f0f0f">
+                </div>
+              </div>
+              <div class="setting_item">
+                <button type="button" onclick="window.globalFunction.reset_theme()" class="reset_button">
+                  デフォルトに戻す
+                </button>
+              </div>
             </div>
             <div class="setting_item">
               <label>フォントサイズ</label>

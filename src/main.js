@@ -511,6 +511,11 @@ window.globalFunction.show_hide_tabs = show_hide_tabs;
 window.globalFunction.switch_tab = switch_tab;
 window.globalFunction.add_tab = add_tab;
 window.globalFunction.remove_tab = remove_tab;
+window.globalFunction.open_settings = open_settings;
+window.globalFunction.close_settings = close_settings;
+window.globalFunction.clear_history = clear_history;
+window.globalFunction.clear_cache = clear_cache;
+window.globalFunction.reset_theme = reset_theme;
 
 // 設定画面の機能
 function open_settings() {
@@ -532,9 +537,21 @@ function close_settings() {
 }
 
 function load_settings() {
-  // テーマ設定
-  const theme = localStorage.getItem("theme") || "auto";
-  document.getElementById("theme_select").value = theme;
+  // テーマプリセット設定
+  const themePreset = localStorage.getItem("theme_preset") || "auto";
+  document.getElementById("theme_preset").value = themePreset;
+  
+  // カスタムカラー設定
+  const baseColor = localStorage.getItem("base_color") || "#f6f6f6";
+  const accentColor = localStorage.getItem("accent_color") || "#4CAF50";
+  const textColor = localStorage.getItem("text_color") || "#0f0f0f";
+  
+  document.getElementById("base_color").value = baseColor;
+  document.getElementById("base_color_text").value = baseColor;
+  document.getElementById("accent_color").value = accentColor;
+  document.getElementById("accent_color_text").value = accentColor;
+  document.getElementById("text_color").value = textColor;
+  document.getElementById("text_color_text").value = textColor;
   
   // フォントサイズ設定
   const fontSize = localStorage.getItem("font_size") || "16";
@@ -548,13 +565,29 @@ function load_settings() {
   // 画像表示設定
   const showImages = localStorage.getItem("show_images") !== "false";
   document.getElementById("show_images").checked = showImages;
+  
+  // カラー設定の表示/非表示を制御
+  toggle_color_settings();
 }
 
 function save_settings() {
-  // テーマ設定
-  const theme = document.getElementById("theme_select").value;
-  localStorage.setItem("theme", theme);
-  apply_theme(theme);
+  // テーマプリセット設定
+  const themePreset = document.getElementById("theme_preset").value;
+  localStorage.setItem("theme_preset", themePreset);
+  
+  // カスタムカラー設定
+  const baseColor = document.getElementById("base_color").value;
+  const accentColor = document.getElementById("accent_color").value;
+  const textColor = document.getElementById("text_color").value;
+  
+  localStorage.setItem("base_color", baseColor);
+  localStorage.setItem("accent_color", accentColor);
+  localStorage.setItem("text_color", textColor);
+  
+  // テキスト入力も同期
+  document.getElementById("base_color_text").value = baseColor;
+  document.getElementById("accent_color_text").value = accentColor;
+  document.getElementById("text_color_text").value = textColor;
   
   // フォントサイズ設定
   const fontSize = document.getElementById("font_size_slider").value;
@@ -568,16 +601,129 @@ function save_settings() {
   // 画像表示設定
   const showImages = document.getElementById("show_images").checked;
   localStorage.setItem("show_images", showImages);
+  
+  // テーマを適用
+  apply_theme(themePreset, baseColor, accentColor, textColor);
+  
+  // カラー設定の表示/非表示を制御
+  toggle_color_settings();
 }
 
-function apply_theme(theme) {
-  const html = document.documentElement;
-  if (theme === "light") {
-    html.style.colorScheme = "light";
-  } else if (theme === "dark") {
-    html.style.colorScheme = "dark";
+function toggle_color_settings() {
+  const themePreset = document.getElementById("theme_preset").value;
+  const colorSettings = document.querySelector(".color_settings");
+  
+  if (themePreset === "custom") {
+    colorSettings.style.display = "block";
   } else {
-    html.style.colorScheme = "auto";
+    colorSettings.style.display = "none";
+  }
+}
+
+function apply_theme(preset, baseColor, accentColor, textColor) {
+  const root = document.documentElement;
+  
+  if (preset === "custom") {
+    // カスタムテーマを適用
+    root.style.setProperty('--base-color', baseColor);
+    root.style.setProperty('--accent-color', accentColor);
+    root.style.setProperty('--text-color', textColor);
+    
+    // 明度を計算してボタンのホバー色を生成
+    const accentHover = adjustBrightness(accentColor, -20);
+    const accentActive = adjustBrightness(accentColor, -40);
+    
+    root.style.setProperty('--accent-hover', accentHover);
+    root.style.setProperty('--accent-active', accentActive);
+    
+    // CSSカスタムプロパティを使用してスタイルを適用
+    document.body.style.backgroundColor = baseColor;
+    document.body.style.color = textColor;
+    
+    // ツールバーの背景色も変更
+    const toolbar = document.getElementById("bottom_toolbar");
+    if (toolbar) {
+      toolbar.style.backgroundColor = baseColor;
+      toolbar.style.borderTopColor = adjustBrightness(baseColor, -30);
+    }
+    
+    root.style.colorScheme = "light";
+  } else if (preset === "light") {
+    // ライトテーマ
+    resetCustomStyles();
+    root.style.colorScheme = "light";
+  } else if (preset === "dark") {
+    // ダークテーマ
+    resetCustomStyles();
+    root.style.colorScheme = "dark";
+  } else {
+    // 自動テーマ
+    resetCustomStyles();
+    root.style.colorScheme = "auto";
+  }
+}
+
+function resetCustomStyles() {
+  const root = document.documentElement;
+  const properties = ['--base-color', '--accent-color', '--text-color', '--accent-hover', '--accent-active'];
+  
+  properties.forEach(prop => {
+    root.style.removeProperty(prop);
+  });
+  
+  document.body.style.removeProperty('background-color');
+  document.body.style.removeProperty('color');
+  
+  const toolbar = document.getElementById("bottom_toolbar");
+  if (toolbar) {
+    toolbar.style.removeProperty('background-color');
+    toolbar.style.removeProperty('border-top-color');
+  }
+}
+
+function adjustBrightness(hex, percent) {
+  // HEXカラーの明度を調整する関数
+  const num = parseInt(hex.replace("#", ""), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = (num >> 16) + amt;
+  const G = (num >> 8 & 0x00FF) + amt;
+  const B = (num & 0x0000FF) + amt;
+  
+  return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+    (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+}
+
+function isValidHexColor(hex) {
+  return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(hex);
+}
+
+function sync_color_inputs(colorInput, textInput) {
+  const color = colorInput.value;
+  textInput.value = color;
+  save_settings();
+}
+
+function sync_text_inputs(textInput, colorInput) {
+  const text = textInput.value;
+  if (isValidHexColor(text)) {
+    colorInput.value = text;
+    save_settings();
+  }
+}
+
+function reset_theme() {
+  if (confirm("テーマをデフォルトに戻しますか？")) {
+    // デフォルト値に設定
+    document.getElementById("theme_preset").value = "auto";
+    document.getElementById("base_color").value = "#f6f6f6";
+    document.getElementById("base_color_text").value = "#f6f6f6";
+    document.getElementById("accent_color").value = "#4CAF50";
+    document.getElementById("accent_color_text").value = "#4CAF50";
+    document.getElementById("text_color").value = "#0f0f0f";
+    document.getElementById("text_color_text").value = "#0f0f0f";
+    
+    save_settings();
   }
 }
 
@@ -632,10 +778,32 @@ function clear_cache() {
 
 // 設定画面のイベントリスナーを設定
 document.addEventListener("DOMContentLoaded", function() {
-  // テーマ変更
-  const themeSelect = document.getElementById("theme_select");
-  if (themeSelect) {
-    themeSelect.addEventListener("change", save_settings);
+  // テーマプリセット変更
+  const themePreset = document.getElementById("theme_preset");
+  if (themePreset) {
+    themePreset.addEventListener("change", save_settings);
+  }
+  
+  // カラーピッカーの変更
+  const baseColorPicker = document.getElementById("base_color");
+  const baseColorText = document.getElementById("base_color_text");
+  if (baseColorPicker && baseColorText) {
+    baseColorPicker.addEventListener("change", () => sync_color_inputs(baseColorPicker, baseColorText));
+    baseColorText.addEventListener("input", () => sync_text_inputs(baseColorText, baseColorPicker));
+  }
+  
+  const accentColorPicker = document.getElementById("accent_color");
+  const accentColorText = document.getElementById("accent_color_text");
+  if (accentColorPicker && accentColorText) {
+    accentColorPicker.addEventListener("change", () => sync_color_inputs(accentColorPicker, accentColorText));
+    accentColorText.addEventListener("input", () => sync_text_inputs(accentColorText, accentColorPicker));
+  }
+  
+  const textColorPicker = document.getElementById("text_color");
+  const textColorTextInput = document.getElementById("text_color_text");
+  if (textColorPicker && textColorTextInput) {
+    textColorPicker.addEventListener("change", () => sync_color_inputs(textColorPicker, textColorTextInput));
+    textColorTextInput.addEventListener("input", () => sync_text_inputs(textColorTextInput, textColorPicker));
   }
   
   // フォントサイズ変更
@@ -669,20 +837,12 @@ document.addEventListener("DOMContentLoaded", function() {
   }
   
   // 初期設定を適用
-  const savedTheme = localStorage.getItem("theme") || "auto";
+  const savedThemePreset = localStorage.getItem("theme_preset") || "auto";
+  const savedBaseColor = localStorage.getItem("base_color") || "#f6f6f6";
+  const savedAccentColor = localStorage.getItem("accent_color") || "#4CAF50";
+  const savedTextColor = localStorage.getItem("text_color") || "#0f0f0f";
   const savedFontSize = localStorage.getItem("font_size") || "16";
-  apply_theme(savedTheme);
+  
+  apply_theme(savedThemePreset, savedBaseColor, savedAccentColor, savedTextColor);
   apply_font_size(savedFontSize);
 });
-
-window.globalFunction = [];
-window.globalFunction.greet = greet;
-window.globalFunction.reflesh_page = reflesh_page;
-window.globalFunction.show_hide_tabs = show_hide_tabs;
-window.globalFunction.switch_tab = switch_tab;
-window.globalFunction.add_tab = add_tab;
-window.globalFunction.remove_tab = remove_tab;
-window.globalFunction.open_settings = open_settings;
-window.globalFunction.close_settings = close_settings;
-window.globalFunction.clear_history = clear_history;
-window.globalFunction.clear_cache = clear_cache;
