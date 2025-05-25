@@ -242,8 +242,13 @@ function show_hide_tabs() {
   try {
     if (tabs_shown == 0) {
       tabs_shown = 1;
-      let tabs_string =
-          "<div id='tab_control'><button type='button' onclick='window.globalFunction.show_hide_tabs()'>≡</button><button type='button' onclick='window.globalFunction.add_tab()'>+</button></div><br>";
+      
+      // 下部ツールバーをメニュー表示用に切り替え
+      document.getElementById("normal_toolbar").style.display = "none";
+      document.getElementById("menu_toolbar").style.display = "block";
+      
+      // タブメニューの内容を生成（追加ボタンは削除）
+      let tabs_string = "";
       for (let i = 0; i < tabs.length; i++) {
         const tabTitle = tabs[i].title[tabs[i].page_number] || "New tab";
         tabs_string +=
@@ -263,6 +268,11 @@ function show_hide_tabs() {
       tab_element.style.transition = "opacity 0.3s ";
     } else {
       tabs_shown = 0;
+      
+      // 下部ツールバーを通常表示に戻す
+      document.getElementById("menu_toolbar").style.display = "none";
+      document.getElementById("normal_toolbar").style.display = "block";
+      
       tab_element.style.opacity = "0";
       tab_element.style.transition = "opacity 0.3s ";
       tabs_visibility_interval = window.setInterval(
@@ -368,8 +378,11 @@ function add_tab() {
   tab_history = ["New tab"];
   url_history = ["rigil:newtab"];
 
-  // タブ一覧を更新して表示
-  show_hide_tabs();
+  // メニューを閉じる
+  if (tabs_shown == 1) {
+    show_hide_tabs();
+  }
+  
   save_status();
 }
 
@@ -424,9 +437,8 @@ function remove_tab(tab_number) {
       tabs[current_tab_number].contents[current_page_number];
   }
 
-  // タブの再描画部分を修正
-  let tabs_string =
-    "<div id='tab_control'><button type='button' onclick='window.globalFunction.show_hide_tabs()'>≡</button><button type='button' onclick='window.globalFunction.add_tab()'>+</button></div><br>";
+  // タブの再描画部分を修正（追加ボタンは削除）
+  let tabs_string = "";
   for (let i = 0; i < tabs.length; i++) {
     // タイトルの参照方法を修正
     const tabTitle = tabs[i].title[tabs[i].page_number] || "New tab";

@@ -20,6 +20,7 @@
 .container {
     margin: 0;
     padding-top: 10vh;
+    padding-bottom: 80px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -89,6 +90,7 @@ button {
 
 #greet-input {
     margin-right: 5px;
+    flex: 1;
 }
 
 #head_contents {
@@ -96,10 +98,17 @@ button {
         width: 3em;
         height: 3em;
     }
-    box-shadow: 1 2px 2px rgba(0, 0, 0, 100);
-    position: fixed;
-    top: 0px;
-    left: 0px;
+    box-shadow: none;
+    position: static;
+}
+
+#head_contents .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 10px;
 }
 
 #tabs {
@@ -143,6 +152,26 @@ button {
     button:active {
         background-color: #0f0f0f69;
     }
+    
+    /* ダークモードでの下部ツールバー */
+    #bottom_toolbar {
+        background-color: #2f2f2f;
+        border-top: 1px solid #444;
+    }
+    
+    /* ダークモードでの新しいタブボタン */
+    #add_tab_button {
+        background-color: #2E7D32;
+        color: #ffffff;
+    }
+    
+    #add_tab_button:hover {
+        background-color: #388E3C;
+    }
+    
+    #add_tab_button:active {
+        background-color: #1B5E20;
+    }
 }
 
 #hreftag {
@@ -152,4 +181,49 @@ button {
     box-shadow: none;
     border: none;
     border-bottom-color: blue;
+}
+
+/* 画面下部のツールバー */
+#bottom_toolbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #f6f6f6;
+    border-top: 1px solid #ddd;
+    padding: 10px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+/* メニュー表示時のツールバー */
+#menu_toolbar .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 10px;
+}
+
+#add_tab_button {
+    flex: 1;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    font-weight: bold;
+}
+
+#add_tab_button:hover {
+    background-color: #45a049;
+    border-color: #45a049;
+}
+
+#add_tab_button:active {
+    background-color: #3d8b40;
+}
+
+/* メインコンテンツエリアが下部ツールバーと重ならないように調整 */
+#body2 {
+    padding-bottom: 80px;
 }

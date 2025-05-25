@@ -10,13 +10,6 @@
   <body id="body1">
       <a id="hreftag"></a>
     <div class="container">
-      <div id="head_contents">
-        <form class="row" id="greet-form">
-          <button type="button" onclick="window.globalFunction.show_hide_tabs()">≡</button>
-          <input id="greet-input" placeholder="Enter URL..." />
-          <button type="button" onclick="window.globalFunction.reflesh_page()">↺</button>
-        </form>
-      </div>
       <p id="greet-msg"></p>
     </div>
     <div id="tabs">
@@ -24,6 +17,28 @@
     <div id="body2">
     </div>
     <div id="errormessage">
+    </div>
+    
+    <!-- URLバー、メニューボタン、リフレッシュボタンを画面下部に配置 -->
+    <div id="bottom_toolbar">
+      <!-- 通常時のツールバー -->
+      <div id="normal_toolbar">
+        <div id="head_contents">
+          <form class="row" id="greet-form">
+            <button type="button" onclick="window.globalFunction.show_hide_tabs()">≡</button>
+            <input id="greet-input" placeholder="Enter URL..." />
+            <button type="button" onclick="window.globalFunction.reflesh_page()">↺</button>
+          </form>
+        </div>
+      </div>
+      
+      <!-- メニュー表示時のツールバー -->
+      <div id="menu_toolbar" style="display: none;">
+        <div class="row">
+          <button type="button" onclick="window.globalFunction.show_hide_tabs()">≡</button>
+          <button type="button" onclick="window.globalFunction.add_tab()" id="add_tab_button">+ 新しいタブ</button>
+        </div>
+      </div>
     </div>
   </body>
 
