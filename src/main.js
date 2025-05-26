@@ -25,16 +25,16 @@ localStorage.removeItem("tab_number");
 localStorage.removeItem("page_number");
 */
 //if (localStorage.getItem("tabs") != null) {
-  let status = await read_status();
+  let tab_status = await read_status();
 //tabs = JSON.parse(await read_status());//localStorage.getItem("tabs"));
 //current_tab_number = JSON.parse(localStorage.getItem("current_tab_number"));
 //current_page_number = JSON.parse(localStorage.getItem("current_page_number"));
 //} else {
-  if (status == "") {
+  if (tab_status === null) {
     tabs.push(newtab);
     save_status();
   } else {
-    tabs = JSON.parse(status);
+    tabs = JSON.parse(tab_status);
     current_tab_number = JSON.parse(localStorage.getItem("tab_number"));
     current_page_number = JSON.parse(localStorage.getItem("page_number"));
   }
