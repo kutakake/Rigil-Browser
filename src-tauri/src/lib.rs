@@ -119,63 +119,59 @@ fn extract_href(tag: &str) -> String {
 // リンクタグを処理する関数
 fn process_link_tag(tag: &str, contents: &[char], i: &mut usize, base_url: &str, current_url: &str) -> String {
     let href = extract_href(tag);
+    if href.is_empty() {
+        return String::new();
+    }
+    
     let resolved_href = resolve_relative_url(&href, base_url, current_url);
     
-    // リンクテキストを取得
-    let mut full_tag = tag.to_string();
-    if *i < contents.len() && contents[*i] != '<' {
-        while *i < contents.len() && contents[*i] != '<' {
-            full_tag.push(contents[*i]);
+    // リンクテキストを取得するため、</a>まで読み進める
+    let mut link_content = String::new();
+    let mut tag_depth = 0;
+    
+    while *i < contents.len() {
+        if contents[*i] == '<' {
+            // 新しいタグの開始をチェック
+            let mut peek_tag = String::new();
+            let mut peek_i = *i;
+            
+            while peek_i < contents.len() && contents[peek_i] != '>' {
+                peek_tag.push(contents[peek_i]);
+                peek_i += 1;
+            }
+            if peek_i < contents.len() {
+                peek_tag.push(contents[peek_i]);
+            }
+            
+            if peek_tag.to_lowercase().contains("</a>") {
+                // 終了タグが見つかった
+                *i = peek_i + 1;
+                break;
+            } else if peek_tag.starts_with("<a ") || peek_tag == "<a>" {
+                // ネストしたaタグ
+                tag_depth += 1;
+            }
+            
+            // タグをスキップ
+            *i = peek_i + 1;
+        } else {
+            // 通常のテキスト
+            link_content.push(contents[*i]);
             *i += 1;
         }
-        if *i < contents.len() {
-            while *i < contents.len() && contents[*i] != '>' {
-                full_tag.push(contents[*i]);
-                *i += 1;
-            }
-            if *i < contents.len() {
-                full_tag.push(contents[*i]);
-            }
-        }
     }
     
-    if full_tag.contains("</a>") {
-        let link_text = extract_link_text(&full_tag);
-        format!(
-            "<button id=\"hreftag\" onclick=\"javascript:{{document.getElementById('greet-input').value='{}';window.globalFunction.greet()}}\">{}</button>",
-            resolved_href, link_text
-        )
+    // リンクテキストが空の場合はURLを使用
+    let display_text = if link_content.trim().is_empty() {
+        resolved_href.clone()
     } else {
-        String::new()
-    }
-}
-
-// リンクテキストを抽出する関数
-fn extract_link_text(full_tag: &str) -> String {
-    let tag_chars: Vec<char> = full_tag.chars().collect();
-    let mut text = String::new();
-    let mut in_content = false;
-    let mut i = 0;
+        link_content.trim().to_string()
+    };
     
-    while i < tag_chars.len() {
-        if !in_content && tag_chars[i] == '>' {
-            in_content = true;
-            i += 1;
-            continue;
-        }
-        
-        if in_content {
-            if i + 3 < tag_chars.len() && 
-               tag_chars[i] == '<' && tag_chars[i+1] == '/' && 
-               tag_chars[i+2] == 'a' && tag_chars[i+3] == '>' {
-                break;
-            }
-            text.push(tag_chars[i]);
-        }
-        i += 1;
-    }
-    
-    text
+    format!(
+        "<button id=\"hreftag\" onclick=\"javascript:{{document.getElementById('greet-input').value='{}';window.globalFunction.greet()}}\">{}</button>",
+        resolved_href, display_text
+    )
 }
 
 // スクリプトタグをスキップする関数
@@ -216,35 +212,27 @@ fn parse_html_to_text(html: &str, base_url: &str, current_url: &str) -> String {
             while i < contents.len() {
                 tag.push(contents[i]);
                 i += 1;
-                if i < contents.len() && contents[i] == '>' {
-                    tag.push(contents[i]);
-                    i += 1;
+                if contents[i-1] == '>' {
                     break;
                 }
             }
             
             // タグの種類に応じて処理
-            if tag.contains("<a href") {
+            let tag_lower = tag.to_lowercase();
+            if tag_lower.contains("<a ") || tag_lower == "<a>" {
                 let link_html = process_link_tag(&tag, &contents, &mut i, base_url, current_url);
-                formatted_text.push_str(&link_html);
-            } else if tag.contains("<script") {
+                if !link_html.is_empty() {
+                    formatted_text.push_str(&link_html);
+                }
+            } else if tag_lower.contains("<script") {
                 skip_script_tag(&contents, &mut i);
-            } else if tag.contains("<style") {
+            } else if tag_lower.contains("<style") {
                 skip_style_tag(&contents, &mut i);
             } else {
                 formatted_text.push_str(&is_formatted(tag));
             }
-            
-            if i < contents.len() && contents[i] == '<' {
-                continue;
-            }
-        }
-        
-        if i < contents.len() {
-            if contents[i] == '>' {
-                i += 1;
-                continue;
-            }
+        } else {
+            // 通常のテキスト
             formatted_text.push(contents[i]);
             i += 1;
         }
