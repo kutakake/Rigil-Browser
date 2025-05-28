@@ -8,6 +8,17 @@ function open_settings() {
   // 設定値を読み込み
   load_settings();
   
+  // 現在のテーマを設定画面に適用
+  const currentTheme = localStorage.getItem("theme_preset") || "auto";
+  const currentBaseColor = localStorage.getItem("base_color") || "#f6f6f6";
+  const currentAccentColor = localStorage.getItem("accent_color") || "#4CAF50";
+  const currentTextColor = localStorage.getItem("text_color") || "#0f0f0f";
+  
+  if (currentTheme === "custom") {
+    const currentLinkColor = localStorage.getItem("link_color") || "#646cff";
+    applyThemeToSettings(currentBaseColor, currentAccentColor, currentTextColor, currentLinkColor);
+  }
+  
   // フォントサイズスライダーのイベントリスナーを再設定
   const fontSizeSlider = document.getElementById("font_size_slider");
   if (fontSizeSlider) {
@@ -64,12 +75,18 @@ function load_settings() {
   document.getElementById("font_size_value").textContent = fontSize + "px";
   
   // タブ自動保存設定
-  const autoSaveTabs = localStorage.getItem("auto_save_tabs") === "true";
-  document.getElementById("auto_save_tabs").checked = autoSaveTabs;
+  const autoSaveCheckbox = document.getElementById("auto_save_tabs");
+  if (autoSaveCheckbox) {
+    const autoSaveTabs = autoSaveCheckbox.checked;
+    localStorage.setItem("auto_save_tabs", autoSaveTabs);
+  }
   
   // 画像表示設定
-  const showImages = localStorage.getItem("show_images") !== "false";
-  document.getElementById("show_images").checked = showImages;
+  const showImagesCheckbox = document.getElementById("show_images");
+  if (showImagesCheckbox) {
+    const showImages = showImagesCheckbox.checked;
+    localStorage.setItem("show_images", showImages);
+  }
   
   // カラー設定の表示/非表示を制御
   toggle_color_settings();
@@ -103,12 +120,18 @@ function save_settings() {
   apply_font_size(fontSize);
   
   // タブ自動保存設定
-  const autoSaveTabs = document.getElementById("auto_save_tabs").checked;
-  localStorage.setItem("auto_save_tabs", autoSaveTabs);
+  const autoSaveCheckbox = document.getElementById("auto_save_tabs");
+  if (autoSaveCheckbox) {
+    const autoSaveTabs = autoSaveCheckbox.checked;
+    localStorage.setItem("auto_save_tabs", autoSaveTabs);
+  }
   
   // 画像表示設定
-  const showImages = document.getElementById("show_images").checked;
-  localStorage.setItem("show_images", showImages);
+  const showImagesCheckbox = document.getElementById("show_images");
+  if (showImagesCheckbox) {
+    const showImages = showImagesCheckbox.checked;
+    localStorage.setItem("show_images", showImages);
+  }
   
   // テーマを適用
   apply_theme(themePreset, baseColor, accentColor, textColor);
@@ -168,6 +191,9 @@ function apply_theme(preset, baseColor, accentColor, textColor) {
       tabsElement.style.backgroundColor = baseColor;
     }
     
+    // 設定画面にカスタムテーマを適用
+    applyThemeToSettings(baseColor, accentColor, textColor, linkColor);
+    
     // UIボタンにアクセントカラーを適用
     applyAccentColorToButtons(accentColor, accentHover, accentActive);
     
@@ -185,6 +211,98 @@ function apply_theme(preset, baseColor, accentColor, textColor) {
     resetCustomStyles();
     root.style.colorScheme = "auto";
   }
+}
+
+function applyThemeToSettings(baseColor, accentColor, textColor, linkColor) {
+  // 設定画面の背景オーバーレイ
+  const settingsScreen = document.getElementById("settings_screen");
+  if (settingsScreen) {
+    // ベースカラーが暗い場合は明るいオーバーレイ、明るい場合は暗いオーバーレイ
+    const brightness = getBrightness(baseColor);
+    const overlayColor = brightness > 128 ? "rgba(0, 0, 0, 0.5)" : "rgba(255, 255, 255, 0.3)";
+    settingsScreen.style.backgroundColor = overlayColor;
+  }
+  
+  // 設定画面のコンテナ
+  const settingsContainer = document.querySelector(".settings_container");
+  if (settingsContainer) {
+    settingsContainer.style.backgroundColor = baseColor;
+    settingsContainer.style.color = textColor;
+  }
+  
+  // 設定画面のヘッダー
+  const settingsHeader = document.querySelector(".settings_header");
+  if (settingsHeader) {
+    const headerBorderColor = adjustBrightness(baseColor, -20);
+    settingsHeader.style.borderBottomColor = headerBorderColor;
+  }
+  
+  // 設定画面のタイトル
+  const settingsTitle = document.querySelector(".settings_header h2");
+  if (settingsTitle) {
+    settingsTitle.style.color = textColor;
+  }
+  
+  // 閉じるボタン
+  const closeButton = document.querySelector(".close_button");
+  if (closeButton) {
+    closeButton.style.backgroundColor = adjustBrightness(accentColor, -40);
+    closeButton.style.color = "white";
+    closeButton.style.borderColor = adjustBrightness(accentColor, -40);
+  }
+  
+  // セクションタイトル
+  const sectionTitles = document.querySelectorAll(".settings_section h3");
+  sectionTitles.forEach(title => {
+    title.style.color = textColor;
+    title.style.borderBottomColor = accentColor;
+  });
+  
+  // ラベル
+  const labels = document.querySelectorAll(".setting_item label");
+  labels.forEach(label => {
+    label.style.color = adjustBrightness(textColor, -10);
+  });
+  
+  // セレクトボックス
+  const selects = document.querySelectorAll(".setting_item select");
+  selects.forEach(select => {
+    select.style.backgroundColor = adjustBrightness(baseColor, 10);
+    select.style.color = textColor;
+    select.style.borderColor = adjustBrightness(baseColor, -30);
+  });
+  
+  // テキスト入力
+  const textInputs = document.querySelectorAll(".color_input_group input[type='text']");
+  textInputs.forEach(input => {
+    input.style.backgroundColor = adjustBrightness(baseColor, 10);
+    input.style.color = textColor;
+    input.style.borderColor = adjustBrightness(baseColor, -30);
+  });
+  
+  // カラー設定エリア
+  const colorSettings = document.querySelector(".color_settings");
+  if (colorSettings) {
+    colorSettings.style.backgroundColor = adjustBrightness(baseColor, 5);
+    colorSettings.style.borderColor = adjustBrightness(baseColor, -20);
+  }
+  
+  // リセットボタン
+  const resetButtons = document.querySelectorAll(".reset_button");
+  resetButtons.forEach(button => {
+    button.style.backgroundColor = adjustBrightness(accentColor, -30);
+    button.style.color = "white";
+    button.style.borderColor = adjustBrightness(accentColor, -30);
+  });
+  
+  // 危険なボタン（履歴クリアなど）
+  const dangerButtons = document.querySelectorAll(".danger_button");
+  dangerButtons.forEach(button => {
+    // ユーザー指定のアクセントカラーを使用
+    button.style.backgroundColor = adjustBrightness(accentColor, -40);
+    button.style.color = "white";
+    button.style.borderColor = adjustBrightness(accentColor, -40);
+  });
 }
 
 function applyAccentColorToButtons(accentColor, accentHover, accentActive) {
@@ -248,8 +366,99 @@ function resetCustomStyles() {
     tabsElement.style.removeProperty('background-color');
   }
   
+  // 設定画面のスタイルをリセット
+  resetSettingsStyles();
+  
   // ボタンのカスタムスタイルをリセット
   resetButtonStyles();
+}
+
+function resetSettingsStyles() {
+  // 設定画面の背景オーバーレイをリセット
+  const settingsScreen = document.getElementById("settings_screen");
+  if (settingsScreen) {
+    settingsScreen.style.removeProperty('background-color');
+  }
+  
+  // 設定画面のスタイルをリセット
+  const settingsContainer = document.querySelector(".settings_container");
+  if (settingsContainer) {
+    settingsContainer.style.removeProperty('background-color');
+    settingsContainer.style.removeProperty('color');
+  }
+  
+  // 設定画面のヘッダー
+  const settingsHeader = document.querySelector(".settings_header");
+  if (settingsHeader) {
+    settingsHeader.style.removeProperty('border-bottom-color');
+  }
+  
+  // 設定画面のタイトル
+  const settingsTitle = document.querySelector(".settings_header h2");
+  if (settingsTitle) {
+    settingsTitle.style.removeProperty('color');
+  }
+  
+  // 閉じるボタン
+  const closeButton = document.querySelector(".close_button");
+  if (closeButton) {
+    closeButton.style.removeProperty('background-color');
+    closeButton.style.removeProperty('color');
+    closeButton.style.removeProperty('border-color');
+  }
+  
+  // セクションタイトル
+  const sectionTitles = document.querySelectorAll(".settings_section h3");
+  sectionTitles.forEach(title => {
+    title.style.removeProperty('color');
+    title.style.removeProperty('border-bottom-color');
+  });
+  
+  // ラベル
+  const labels = document.querySelectorAll(".setting_item label");
+  labels.forEach(label => {
+    label.style.removeProperty('color');
+  });
+  
+  // セレクトボックス
+  const selects = document.querySelectorAll(".setting_item select");
+  selects.forEach(select => {
+    select.style.removeProperty('background-color');
+    select.style.removeProperty('color');
+    select.style.removeProperty('border-color');
+  });
+  
+  // テキスト入力
+  const textInputs = document.querySelectorAll(".color_input_group input[type='text']");
+  textInputs.forEach(input => {
+    input.style.removeProperty('background-color');
+    input.style.removeProperty('color');
+    input.style.removeProperty('border-color');
+  });
+  
+  // カラー設定エリア
+  const colorSettings = document.querySelector(".color_settings");
+  if (colorSettings) {
+    colorSettings.style.removeProperty('background-color');
+    colorSettings.style.removeProperty('border-color');
+  }
+  
+  // リセットボタン
+  const resetButtons = document.querySelectorAll(".reset_button");
+  resetButtons.forEach(button => {
+    button.style.removeProperty('background-color');
+    button.style.removeProperty('color');
+    button.style.removeProperty('border-color');
+  });
+  
+  // 危険なボタン（履歴クリアなど）
+  const dangerButtons = document.querySelectorAll(".danger_button");
+  dangerButtons.forEach(button => {
+    // ユーザー指定のアクセントカラーを使用
+    button.style.removeProperty('background-color');
+    button.style.removeProperty('color');
+    button.style.removeProperty('border-color');
+  });
 }
 
 function resetButtonStyles() {
@@ -273,6 +482,17 @@ function adjustBrightness(hex, percent) {
   return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
     (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
     (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+}
+
+function getBrightness(hex) {
+  // HEXカラーの明度を計算する関数（0-255）
+  const num = parseInt(hex.replace("#", ""), 16);
+  const R = (num >> 16);
+  const G = (num >> 8 & 0x00FF);
+  const B = (num & 0x0000FF);
+  
+  // 人間の目の感度に基づいた明度計算
+  return (R * 0.299 + G * 0.587 + B * 0.114);
 }
 
 function isValidHexColor(hex) {
