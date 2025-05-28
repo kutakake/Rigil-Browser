@@ -4,7 +4,12 @@
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script type="module" src="/main.js" defer></script>
+    <!-- 分割されたJavaScriptファイルを順番に読み込み -->
+    <script src="/js/core.js" defer></script>
+    <script src="/js/tabs.js" defer></script>
+    <script src="/js/settings.js" defer></script>
+    <script src="/js/events.js" defer></script>
+    <script src="/main.js" defer></script>
   </head>
 
   <body id="body1">
@@ -58,6 +63,13 @@
                 <div class="color_input_group">
                   <input type="color" id="text_color" value="#0f0f0f">
                   <input type="text" id="text_color_text" value="#0f0f0f" placeholder="#0f0f0f">
+                </div>
+              </div>
+              <div class="setting_item">
+                <label>リンク色</label>
+                <div class="color_input_group">
+                  <input type="color" id="link_color" value="#646cff">
+                  <input type="text" id="link_color_text" value="#646cff" placeholder="#646cff">
                 </div>
               </div>
               <div class="setting_item">

@@ -23,6 +23,7 @@
     --accent-hover: #45a049;
     --accent-active: #3d8b40;
     --toolbar-color: #ffffff;
+    --link-color: #646cff;
     
     /* フォントサイズ用変数 */
     --content-font-size: 16px;
@@ -69,12 +70,13 @@ html, body {
 
 a {
     font-weight: 500;
-    color: #646cff;
-    text-decoration: inherit;
+    color: var(--link-color, #646cff);
+    text-decoration: underline;
 }
 
 a:hover {
-    color: #535bf2;
+    color: var(--link-color, #535bf2);
+    opacity: 0.8;
 }
 
 h1 {
@@ -167,6 +169,7 @@ button {
         --base-color: #2f2f2f;
         --toolbar-color: #3a3a3a;
         --text-color: #f6f6f6;
+        --link-color: #24c8db;
     }
 
     a:hover {
@@ -213,10 +216,18 @@ button {
 #hreftag {
     padding: 0;
     background-color: rgba(0, 0, 0, 0);
-    color: blue;
+    color: var(--link-color, blue);
     box-shadow: none;
     border: none;
-    border-bottom-color: blue;
+    text-decoration: underline;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+#hreftag:hover {
+    color: var(--link-color, blue);
+    opacity: 0.8;
+    background-color: rgba(0, 0, 0, 0);
 }
 
 /* 画面下部のツールバー */
