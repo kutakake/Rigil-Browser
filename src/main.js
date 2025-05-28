@@ -35,8 +35,7 @@ localStorage.removeItem("page_number");
     save_status();
   } else {
     tabs = JSON.parse(tab_status);
-    current_tab_number = JSON.parse(localStorage.getItem("tab_number"));
-    current_page_number = JSON.parse(localStorage.getItem("page_number"));
+    // current_tab_numberとcurrent_page_numberはread_status内で設定済み
   }
   tab_history = tabs[current_tab_number].contents; //今開いているタブの履歴。各要素はそれぞれのページのHTML
   var url_history = tabs[current_tab_number].urls;
@@ -459,17 +458,33 @@ function remove_tab(tab_number) {
 }
 
 async function read_status() {
-  return localStorage.getItem("tabs");
-  //return await invoke("read");
+  try {
+    const result = await invoke("read_tabs");
+    if (result === "null") {
+      return null;
+    }
+    const tabData = JSON.parse(result);
+    // localStorageからcurrent_tab_numberとcurrent_page_numberを設定
+    current_tab_number = tabData.current_tab_number;
+    current_page_number = tabData.current_page_number;
+    return tabData.tabs;
+  } catch (error) {
+    console.error("タブ情報の読み込みに失敗しました:", error);
+    return null;
+  }
 }
 
 async function save_status() {
-  tabs[current_tab_number].contents = tab_history;
-  localStorage.setItem("tab_number", JSON.stringify(current_tab_number));
-  localStorage.setItem("page_number", JSON.stringify(current_page_number));
-
-  localStorage.setItem("tabs", JSON.stringify(tabs));
-  //await invoke("save", { tabs: JSON.stringify(tabs) });
+  try {
+    tabs[current_tab_number].contents = tab_history;
+    await invoke("save_tabs", { 
+      tabs: JSON.stringify(tabs),
+      currentTabNumber: current_tab_number,
+      currentPageNumber: current_page_number
+    });
+  } catch (error) {
+    console.error("タブ情報の保存に失敗しました:", error);
+  }
 }
 /*
 async function is_empty_content() {
@@ -828,19 +843,40 @@ function clear_history() {
 
 function clear_cache() {
   if (confirm("キャッシュをクリアしますか？")) {
-    // ローカルストレージから設定以外を削除
-    const theme = localStorage.getItem("theme");
+    // 設定情報を保持するためのバックアップ
+    const themePreset = localStorage.getItem("theme_preset");
+    const baseColor = localStorage.getItem("base_color");
+    const accentColor = localStorage.getItem("accent_color");
+    const textColor = localStorage.getItem("text_color");
     const fontSize = localStorage.getItem("font_size");
     const autoSaveTabs = localStorage.getItem("auto_save_tabs");
     const showImages = localStorage.getItem("show_images");
     
+    // localStorageをクリア
     localStorage.clear();
     
     // 設定を復元
-    if (theme) localStorage.setItem("theme", theme);
+    if (themePreset) localStorage.setItem("theme_preset", themePreset);
+    if (baseColor) localStorage.setItem("base_color", baseColor);
+    if (accentColor) localStorage.setItem("accent_color", accentColor);
+    if (textColor) localStorage.setItem("text_color", textColor);
     if (fontSize) localStorage.setItem("font_size", fontSize);
     if (autoSaveTabs) localStorage.setItem("auto_save_tabs", autoSaveTabs);
     if (showImages) localStorage.setItem("show_images", showImages);
+    
+    // タブ情報をリセット
+    tabs = [newtab];
+    current_tab_number = 0;
+    current_page_number = 0;
+    tab_history = ["New tab"];
+    url_history = ["rigil:newtab"];
+    
+    // 画面を更新
+    body_element.innerHTML = "New tab";
+    document.getElementById("greet-input").value = "rigil:newtab";
+    
+    // ファイルに保存
+    save_status();
     
     alert("キャッシュがクリアされました。");
   }

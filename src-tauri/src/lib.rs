@@ -1,9 +1,18 @@
-use std::{collections::HashMap, ffi::c_void};
+use serde::{Deserialize, Serialize};
+use tauri::Manager;
+
+#[derive(Serialize, Deserialize)]
+struct TabData {
+    tabs: String,
+    current_tab_number: i32,
+    current_page_number: i32,
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet])//, read, save])
+        .invoke_handler(tauri::generate_handler![greet, save_tabs, read_tabs])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -100,7 +109,6 @@ fn greet(name: &str) -> String {
                 let mut tagvec: Vec<char> = tag.chars().collect();
                 let mut tag_length = tagvec.len();
                 let mut href: String = "".to_string();
-                let mut done: bool = false;
                 loop {
                     //このブロックでhrefの中身を取得
                     if tagpoint >= tag_length {
@@ -110,19 +118,15 @@ fn greet(name: &str) -> String {
                         loop {
                             tagpoint += 1;
                             if tagpoint >= tag_length {
-                                done = true;
                                 break;
                             } else if tagvec[tagpoint] == '\"' {
-                                done = true;
                                 break;
                             } /* else if tagvec[tagpoint] == ' ' {
                                   break;
                               }*/
                             href = format!("{}{}", href, tagvec[tagpoint]);
                         }
-                        if done {
-                            break;
-                        }
+                        break;
                     }
                     tagpoint += 1;
                 }
@@ -148,11 +152,11 @@ fn greet(name: &str) -> String {
                                 break;
                             }
                         }
-                        for ii in 1..tag_end_point {
+                        for _ii in 1..tag_end_point {
                             tagvec.remove(1);
                             tag_length -= 1;
                         }
-                        for ii in 1..4 {
+                        for _ii in 1..4 {
                             tagvec.pop();
                             tag_length -= 1;
                         }
@@ -353,4 +357,56 @@ fn is_formatted(tag: String) -> String {
         }
     }
     String::from("")
+}
+
+#[tauri::command]
+async fn save_tabs(app: tauri::AppHandle, tabs: String, current_tab_number: i32, current_page_number: i32) -> Result<String, String> {
+    let tab_data = TabData {
+        tabs,
+        current_tab_number,
+        current_page_number,
+    };
+    
+    let json_data = serde_json::to_string(&tab_data).map_err(|e| e.to_string())?;
+    
+    // アプリデータディレクトリのパスを取得（WindowsとAndroidの両方に対応）
+    let app_data_dir = app.path().app_data_dir()
+        .or_else(|_| app.path().app_local_data_dir())
+        .map_err(|e| format!("アプリデータディレクトリの取得に失敗: {}", e))?;
+    let rigil_dir = app_data_dir.join("rigil");
+    let tabs_file = rigil_dir.join("tabs.json");
+    
+    // ディレクトリが存在しない場合は作成
+    if !rigil_dir.exists() {
+        std::fs::create_dir_all(&rigil_dir).map_err(|e| format!("ディレクトリ作成エラー: {}", e))?;
+    }
+    
+    // ファイルに書き込み
+    std::fs::write(&tabs_file, &json_data).map_err(|e| format!("ファイル書き込みエラー: {}", e))?;
+    
+    Ok("保存完了".to_string())
+}
+
+#[tauri::command]
+async fn read_tabs(app: tauri::AppHandle) -> Result<String, String> {
+    // アプリデータディレクトリのパスを取得（WindowsとAndroidの両方に対応）
+    let app_data_dir = app.path().app_data_dir()
+        .or_else(|_| app.path().app_local_data_dir())
+        .map_err(|e| format!("アプリデータディレクトリの取得に失敗: {}", e))?;
+    let rigil_dir = app_data_dir.join("rigil");
+    let tabs_file = rigil_dir.join("tabs.json");
+    
+    // ファイルが存在しない場合はnullを返す
+    if !tabs_file.exists() {
+        return Ok("null".to_string());
+    }
+    
+    // ファイルを読み込み
+    let json_data = std::fs::read_to_string(&tabs_file).map_err(|e| format!("ファイル読み込みエラー: {}", e))?;
+    
+    // JSONをパース
+    let tab_data: TabData = serde_json::from_str(&json_data).map_err(|e| format!("JSON解析エラー: {}", e))?;
+    
+    // タブデータ全体をJSONとして返す
+    Ok(serde_json::to_string(&tab_data).map_err(|e| format!("JSON変換エラー: {}", e))?)
 }
