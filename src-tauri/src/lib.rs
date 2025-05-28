@@ -48,9 +48,7 @@ fn greet(name: &str) -> String {
             namestring = format!("{}{}", "https://", namestring);
         }
     }
-    if namevec[name_length - 1] != '/' {
-        namestring = format!("{}{}", namestring, "/");
-    }
+    // 末尾のスラッシュ処理を削除（不要な自動追加を防ぐ）
 
     let body: String = gethtml(&namestring);
     let contents: Vec<char> = body.chars().collect();
@@ -62,27 +60,30 @@ fn greet(name: &str) -> String {
     let mut index_link: String = "".to_string();
     let link_length: usize = index_link_vec.len();
 
-    for i in 0..link_length - 1 {
-        //URLのうち左からTLDまでの部分を取得
+    // ベースURLの取得（プロトコル + ドメイン + パス部分まで）
+    for i in 0..link_length {
         index_link = format!("{}{}", index_link, index_link_vec[i]);
-        if i >= link_length {
-            //index_link = format!("{}{}", index_link, index_link_vec[i]);
-            break;
-        }
         if index_link_vec[i] == '/' {
             slashcount += 1;
         }
         if slashcount == 3 {
-            index_link = format!("{}{}", index_link, index_link_vec[i]);
-            break;
-        }
-        if i >= link_length {
-            //index_link = format!("{}{}", index_link, index_link_vec[i]);
+            // 3つ目のスラッシュまで（https://example.com/）
             break;
         }
     }
-    //index_link = format!("{}{}", index_link, index_link_vec[link_length - 1]);
-    //println!("index: {}", namestring);
+
+    // パス部分がある場合は、最後のスラッシュまでを取得
+    if slashcount == 3 && link_length > index_link.len() {
+        let remaining_path: String = namestring[index_link.len()..].to_string();
+        if remaining_path.contains('/') {
+            // 最後のスラッシュまでのパスを取得
+            let last_slash_pos = remaining_path.rfind('/').unwrap();
+            index_link = format!("{}{}", index_link, &remaining_path[..=last_slash_pos]);
+        } else if !remaining_path.is_empty() {
+            // ファイル名がある場合は、ディレクトリ部分のみ取得
+            index_link = format!("{}{}", index_link, "");
+        }
+    }
 
     formatted_text = format!(
         "{}{}",
@@ -132,7 +133,31 @@ fn greet(name: &str) -> String {
                 }
                 if href.contains("http") { //hrefが相対パスだった場合今いる場所のURLを先頭につける
                 } else {
-                    href = format!("{}{}", index_link, href);
+                    // 相対パスの適切な結合処理
+                    if href.starts_with('/') {
+                        // 絶対パス（ルートからの相対パス）の場合
+                        // プロトコル + ドメインのみを取得
+                        let mut domain_only = String::new();
+                        let mut slash_count = 0;
+                        for ch in namestring.chars() {
+                            domain_only.push(ch);
+                            if ch == '/' {
+                                slash_count += 1;
+                                if slash_count == 3 {
+                                    domain_only.pop(); // 最後のスラッシュを削除
+                                    break;
+                                }
+                            }
+                        }
+                        href = format!("{}{}", domain_only, href);
+                    } else {
+                        // 相対パス（現在のディレクトリからの相対パス）の場合
+                        if index_link.ends_with('/') {
+                            href = format!("{}{}", index_link, href);
+                        } else {
+                            href = format!("{}/{}", index_link, href);
+                        }
+                    }
                 }
                 if contents[i] != '<' {
                     loop {
