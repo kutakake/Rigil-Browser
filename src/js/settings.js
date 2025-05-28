@@ -74,6 +74,12 @@ function load_settings() {
   document.getElementById("font_size_slider").value = fontSize;
   document.getElementById("font_size_value").textContent = fontSize + "px";
   
+  // 言語設定
+  const languageSelect = document.getElementById("language_select");
+  if (languageSelect && window.i18n) {
+    languageSelect.value = window.i18n.getCurrentLanguage();
+  }
+  
   // タブ自動保存設定
   const autoSaveCheckbox = document.getElementById("auto_save_tabs");
   if (autoSaveCheckbox) {
@@ -86,6 +92,13 @@ function load_settings() {
   if (showImagesCheckbox) {
     const showImages = showImagesCheckbox.checked;
     localStorage.setItem("show_images", showImages);
+  }
+  
+  // タブの閉じるボタンの位置設定
+  const tabCloseButtonPosition = localStorage.getItem("tab_close_button_position") || "left";
+  const tabCloseButtonSelect = document.getElementById("tab_close_button_position");
+  if (tabCloseButtonSelect) {
+    tabCloseButtonSelect.value = tabCloseButtonPosition;
   }
   
   // カラー設定の表示/非表示を制御
@@ -132,6 +145,10 @@ function save_settings() {
     const showImages = showImagesCheckbox.checked;
     localStorage.setItem("show_images", showImages);
   }
+  
+  // タブの閉じるボタンの位置設定
+  const tabCloseButtonPosition = document.getElementById("tab_close_button_position").value;
+  localStorage.setItem("tab_close_button_position", tabCloseButtonPosition);
   
   // テーマを適用
   apply_theme(themePreset, baseColor, accentColor, textColor);
@@ -514,7 +531,7 @@ function sync_text_inputs(textInput, colorInput) {
 }
 
 function reset_theme() {
-  if (confirm("テーマをデフォルトに戻しますか？")) {
+  if (confirm(window.i18n.t("confirm_reset_theme"))) {
     // デフォルト値に設定
     document.getElementById("theme_preset").value = "auto";
     document.getElementById("base_color").value = "#f6f6f6";
@@ -526,6 +543,12 @@ function reset_theme() {
     document.getElementById("link_color").value = "#646cff";
     document.getElementById("link_color_text").value = "#646cff";
     
+    // タブの閉じるボタンの位置設定もリセット
+    const tabCloseButtonSelect = document.getElementById("tab_close_button_position");
+    if (tabCloseButtonSelect) {
+      tabCloseButtonSelect.value = "left";
+    }
+    
     save_settings();
   }
 }
@@ -535,7 +558,7 @@ function apply_font_size(fontSize) {
 }
 
 function clear_history() {
-  if (confirm("履歴をクリアしますか？この操作は元に戻せません。")) {
+  if (confirm(window.i18n.t("confirm_clear_history"))) {
     // 全タブの履歴をクリア
     tabs.forEach(tab => {
       tab.title = ["New tab"];
@@ -555,12 +578,12 @@ function clear_history() {
     document.getElementById("greet-input").value = "rigil:newtab";
     
     save_status();
-    alert("履歴がクリアされました。");
+    alert(window.i18n.t("history_cleared"));
   }
 }
 
 function clear_cache() {
-  if (confirm("キャッシュをクリアしますか？")) {
+  if (confirm(window.i18n.t("confirm_clear_cache"))) {
     // 設定情報を保持するためのバックアップ
     const themePreset = localStorage.getItem("theme_preset");
     const baseColor = localStorage.getItem("base_color");
@@ -570,6 +593,8 @@ function clear_cache() {
     const fontSize = localStorage.getItem("font_size");
     const autoSaveTabs = localStorage.getItem("auto_save_tabs");
     const showImages = localStorage.getItem("show_images");
+    const language = localStorage.getItem("rigil_language");
+    const tabCloseButtonPosition = localStorage.getItem("tab_close_button_position");
     
     // localStorageをクリア
     localStorage.clear();
@@ -583,6 +608,8 @@ function clear_cache() {
     if (fontSize) localStorage.setItem("font_size", fontSize);
     if (autoSaveTabs) localStorage.setItem("auto_save_tabs", autoSaveTabs);
     if (showImages) localStorage.setItem("show_images", showImages);
+    if (language) localStorage.setItem("rigil_language", language);
+    if (tabCloseButtonPosition) localStorage.setItem("tab_close_button_position", tabCloseButtonPosition);
     
     // タブ情報をリセット
     tabs = [newtab];
@@ -598,7 +625,7 @@ function clear_cache() {
     // ファイルに保存
     save_status();
     
-    alert("キャッシュがクリアされました。");
+    alert(window.i18n.t("cache_cleared"));
   }
 }
 
@@ -611,6 +638,10 @@ function initialize_app_settings() {
   const savedTextColor = localStorage.getItem("text_color") || "#0f0f0f";
   const savedLinkColor = localStorage.getItem("link_color") || "#646cff";
   const savedFontSize = localStorage.getItem("font_size") || "16";
+  
+  // タブの閉じるボタンの位置設定のデフォルト値を設定
+  const savedTabCloseButtonPosition = localStorage.getItem("tab_close_button_position") || "left";
+  localStorage.setItem("tab_close_button_position", savedTabCloseButtonPosition);
   
   // テーマとフォントサイズを適用
   apply_theme(savedThemePreset, savedBaseColor, savedAccentColor, savedTextColor);
@@ -630,4 +661,17 @@ function initialize_app_settings() {
     fontSize: savedFontSize + "px",
     currentUrl: current_page_url
   });
+}
+
+// 言語切り替え関数
+function change_language(language) {
+  if (window.i18n) {
+    window.i18n.setLanguage(language);
+    
+    // 言語選択ドロップダウンの値を更新
+    const languageSelect = document.getElementById("language_select");
+    if (languageSelect) {
+      languageSelect.value = language;
+    }
+  }
 } 

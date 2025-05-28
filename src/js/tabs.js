@@ -11,18 +11,40 @@ function show_hide_tabs() {
       
       // タブメニューの内容を生成（追加ボタンは削除）
       let tabs_string = "";
+      const closeButtonPosition = localStorage.getItem("tab_close_button_position") || "left";
+      
       for (let i = 0; i < tabs.length; i++) {
         const tabTitle = tabs[i].title[tabs[i].page_number] || "New tab";
-        tabs_string +=
-            "<button onclick='window.globalFunction.remove_tab(" +
-            i +
-            ")'>×</button><br><button onclick='window.globalFunction.switch_tab(" +
-            i +
-            ")'>" +
-            "<nobr>" +
-            tabTitle +
-            "</nobr>" +
-            "</button><br>";
+        
+        if (closeButtonPosition === "left") {
+          tabs_string +=
+              "<div class='tab-item'>" +
+              "<button class='tab-close-button' onclick='window.globalFunction.remove_tab(" +
+              i +
+              ")'>×</button>" +
+              "<button class='tab-title-button' onclick='window.globalFunction.switch_tab(" +
+              i +
+              ")'>" +
+              "<nobr>" +
+              tabTitle +
+              "</nobr>" +
+              "</button>" +
+              "</div>";
+        } else {
+          tabs_string +=
+              "<div class='tab-item'>" +
+              "<button class='tab-title-button' onclick='window.globalFunction.switch_tab(" +
+              i +
+              ")'>" +
+              "<nobr>" +
+              tabTitle +
+              "</nobr>" +
+              "</button>" +
+              "<button class='tab-close-button' onclick='window.globalFunction.remove_tab(" +
+              i +
+              ")'>×</button>" +
+              "</div>";
+        }
       }
       tab_element.innerHTML = tabs_string;
       tab_element.style.visibility = "visible";
@@ -124,19 +146,41 @@ function remove_tab(tab_number) {
 
   // タブの再描画部分を修正（追加ボタンは削除）
   let tabs_string = "";
+  const closeButtonPosition = localStorage.getItem("tab_close_button_position") || "left";
+  
   for (let i = 0; i < tabs.length; i++) {
     // タイトルの参照方法を修正
     const tabTitle = tabs[i].title[tabs[i].page_number] || "New tab";
-    tabs_string +=
-      "<button onclick='window.globalFunction.remove_tab(" +
-      i +
-      ")'>×</button><br><button onclick='window.globalFunction.switch_tab(" +
-      i +
-      ")'>" +
-      "<nobr>" +
-      tabTitle +
-      "</nobr>" +
-      "</button><br>";
+    
+    if (closeButtonPosition === "left") {
+      tabs_string +=
+        "<div class='tab-item'>" +
+        "<button class='tab-close-button' onclick='window.globalFunction.remove_tab(" +
+        i +
+        ")'>×</button>" +
+        "<button class='tab-title-button' onclick='window.globalFunction.switch_tab(" +
+        i +
+        ")'>" +
+        "<nobr>" +
+        tabTitle +
+        "</nobr>" +
+        "</button>" +
+        "</div>";
+    } else {
+      tabs_string +=
+        "<div class='tab-item'>" +
+        "<button class='tab-title-button' onclick='window.globalFunction.switch_tab(" +
+        i +
+        ")'>" +
+        "<nobr>" +
+        tabTitle +
+        "</nobr>" +
+        "</button>" +
+        "<button class='tab-close-button' onclick='window.globalFunction.remove_tab(" +
+        i +
+        ")'>×</button>" +
+        "</div>";
+    }
   }
   tab_element.innerHTML = tabs_string;
 

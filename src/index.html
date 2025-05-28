@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="en" id="test">
+<html lang="ja" id="test">
   <head>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- 分割されたJavaScriptファイルを順番に読み込み -->
+    <script src="/js/i18n.js" defer></script>
     <script src="/js/core.js" defer></script>
     <script src="/js/tabs.js" defer></script>
     <script src="/js/settings.js" defer></script>
@@ -28,97 +29,115 @@
     <div id="settings_screen" style="display: none;">
       <div class="settings_container">
         <div class="settings_header">
-          <h2>設定</h2>
-          <button type="button" onclick="window.globalFunction.close_settings()" class="close_button">×</button>
+          <h2 data-i18n="settings">設定</h2>
+          <button type="button" onclick="window.globalFunction.close_settings()" class="close_button" data-i18n="close">×</button>
         </div>
         <div class="settings_content">
           <div class="settings_section">
-            <h3>表示設定</h3>
+            <h3 data-i18n="display_settings">表示設定</h3>
             <div class="setting_item">
-              <label>テーマプリセット</label>
+              <label data-i18n="theme_preset">テーマプリセット</label>
               <select id="theme_preset">
-                <option value="custom">カスタム</option>
-                <option value="light">ライト</option>
-                <option value="dark">ダーク</option>
-                <option value="auto">自動</option>
+                <option value="custom" data-i18n="custom">カスタム</option>
+                <option value="light" data-i18n="light">ライト</option>
+                <option value="dark" data-i18n="dark">ダーク</option>
+                <option value="auto" data-i18n="auto">自動</option>
               </select>
             </div>
             <div class="color_settings">
               <div class="setting_item">
-                <label>ベースカラー（背景色）</label>
+                <label data-i18n="base_color">ベースカラー（背景色）</label>
                 <div class="color_input_group">
                   <input type="color" id="base_color" value="#f6f6f6">
                   <input type="text" id="base_color_text" value="#f6f6f6" placeholder="#f6f6f6">
                 </div>
               </div>
               <div class="setting_item">
-                <label>アクセントカラー（ボタン等）</label>
+                <label data-i18n="accent_color">アクセントカラー（ボタン等）</label>
                 <div class="color_input_group">
                   <input type="color" id="accent_color" value="#4CAF50">
                   <input type="text" id="accent_color_text" value="#4CAF50" placeholder="#4CAF50">
                 </div>
               </div>
               <div class="setting_item">
-                <label>文字色</label>
+                <label data-i18n="text_color">文字色</label>
                 <div class="color_input_group">
                   <input type="color" id="text_color" value="#0f0f0f">
                   <input type="text" id="text_color_text" value="#0f0f0f" placeholder="#0f0f0f">
                 </div>
               </div>
               <div class="setting_item">
-                <label>リンク色</label>
+                <label data-i18n="link_color">リンク色</label>
                 <div class="color_input_group">
                   <input type="color" id="link_color" value="#646cff">
                   <input type="text" id="link_color_text" value="#646cff" placeholder="#646cff">
                 </div>
               </div>
               <div class="setting_item">
-                <button type="button" onclick="window.globalFunction.reset_theme()" class="reset_button">
+                <button type="button" onclick="window.globalFunction.reset_theme()" class="reset_button" data-i18n="reset_to_default">
                   デフォルトに戻す
                 </button>
               </div>
             </div>
             <div class="setting_item">
-              <label>フォントサイズ</label>
+              <label data-i18n="font_size">フォントサイズ</label>
               <input type="range" id="font_size_slider" min="12" max="24" value="16">
               <span id="font_size_value">16px</span>
             </div>
           </div>
           
-          <div class="settings_section" style="display: none;">
-            <h3>ブラウザ設定</h3>
+          <div class="settings_section">
+            <h3 data-i18n="browser_settings">ブラウザ設定</h3>
+            <div class="setting_item">
+              <label data-i18n="tab_close_button_position">タブの閉じるボタンの位置</label>
+              <select id="tab_close_button_position">
+                <option value="left" data-i18n="left">左</option>
+                <option value="right" data-i18n="right">右</option>
+              </select>
+            </div>
             <div class="setting_item">
               <label>
                 <input type="checkbox" id="auto_save_tabs">
-                タブの自動保存
+                <span data-i18n="auto_save_tabs">タブの自動保存</span>
               </label>
             </div>
             <div class="setting_item">
               <label>
                 <input type="checkbox" id="show_images">
-                画像を表示
+                <span data-i18n="show_images">画像を表示</span>
               </label>
             </div>
           </div>
           
           <div class="settings_section">
-            <h3>プライバシー</h3>
+            <h3 data-i18n="privacy">プライバシー</h3>
             <div class="setting_item">
-              <button type="button" onclick="window.globalFunction.clear_history()" class="danger_button">
+              <button type="button" onclick="window.globalFunction.clear_history()" class="danger_button" data-i18n="clear_history">
                 履歴をクリア
               </button>
             </div>
             <div class="setting_item">
-              <button type="button" onclick="window.globalFunction.clear_cache()" class="danger_button">
+              <button type="button" onclick="window.globalFunction.clear_cache()" class="danger_button" data-i18n="clear_cache">
                 キャッシュをクリア
               </button>
             </div>
           </div>
           
           <div class="settings_section">
-            <h3>情報</h3>
+            <h3 data-i18n="language">言語</h3>
             <div class="setting_item">
-              <label>バージョン</label>
+              <label data-i18n="language">言語</label>
+              <select id="language_select" onchange="window.globalFunction.change_language(this.value)">
+                <option value="ja">日本語</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="settings_section">
+            <h3 data-i18n="information">情報</h3>
+            <div class="setting_item">
+              <label data-i18n="version">バージョン</label>
               <span>Rigil v1.0.0</span>
             </div>
           </div>
@@ -133,7 +152,7 @@
         <div id="head_contents">
           <form class="row" id="greet-form">
             <button type="button" onclick="window.globalFunction.show_hide_tabs()">≡</button>
-            <input id="greet-input" placeholder="Enter URL..." />
+            <input id="greet-input" data-i18n-placeholder="url_placeholder" placeholder="URLを入力..." />
             <button type="button" onclick="window.globalFunction.reflesh_page()">↺</button>
           </form>
         </div>
@@ -143,7 +162,7 @@
       <div id="menu_toolbar" style="display: none;">
         <div class="row">
           <button type="button" onclick="window.globalFunction.show_hide_tabs()">≡</button>
-          <button type="button" onclick="window.globalFunction.add_tab()" id="add_tab_button">+ 新しいタブ</button>
+          <button type="button" onclick="window.globalFunction.add_tab()" id="add_tab_button" data-i18n="new_tab">+ 新しいタブ</button>
           <button type="button" onclick="window.globalFunction.open_settings()" id="settings_button">⚙</button>
         </div>
       </div>

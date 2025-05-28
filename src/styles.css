@@ -99,6 +99,9 @@ button {
 
 button {
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 button:hover {
@@ -160,6 +163,54 @@ button {
     left: 0px;
 }
 
+/* タブアイテムのスタイル */
+.tab-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 4px;
+}
+
+.tab-close-button {
+    width: 32px !important;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #999;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tab-close-button:hover {
+    background-color: #777;
+}
+
+.tab-close-button:active {
+    background-color: #555;
+}
+
+.tab-title-button {
+    flex: 1;
+    height: 32px;
+    padding: 4px 8px;
+    text-align: left;
+    background-color: var(--accent-color, #4CAF50);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    /* テキストのはみ出し対策 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 @media (prefers-color-scheme: dark) {
     :root {
         color: #f6f6f6;
@@ -211,6 +262,24 @@ button {
         background-color: var(--accent-color, #0f0f0f98);
         color: #ffffff;
     }
+    
+    /* ダークモードでのタブボタン */
+    .tab-close-button {
+        background-color: #666;
+    }
+    
+    .tab-close-button:hover {
+        background-color: #555;
+    }
+    
+    .tab-title-button {
+        background-color: var(--accent-color, #2E7D32);
+        color: #ffffff;
+        /* テキストのはみ出し対策 */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
 #hreftag {
@@ -260,6 +329,9 @@ button {
     color: white;
     border: none;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #add_tab_button:hover {
@@ -280,6 +352,9 @@ button {
     border: none;
     font-size: 18px;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #settings_button:hover {
@@ -430,6 +505,9 @@ button {
     border-radius: 6px;
     cursor: pointer;
     font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .reset_button:hover {
@@ -451,6 +529,9 @@ button {
     padding: 8px 16px;
     border-radius: 6px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .danger_button:hover {

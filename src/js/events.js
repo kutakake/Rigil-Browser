@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", async function() {
   window.globalFunction.clear_history = clear_history;
   window.globalFunction.clear_cache = clear_cache;
   window.globalFunction.reset_theme = reset_theme;
+  window.globalFunction.change_language = change_language;
 
   // アプリの初期化
   await initialize_app();
@@ -109,6 +110,12 @@ function setupSettingsEventListeners() {
   const showImagesCheckbox = document.getElementById("show_images");
   if (showImagesCheckbox) {
     showImagesCheckbox.addEventListener("change", save_settings);
+  }
+  
+  // タブの閉じるボタンの位置設定
+  const tabCloseButtonPosition = document.getElementById("tab_close_button_position");
+  if (tabCloseButtonPosition) {
+    tabCloseButtonPosition.addEventListener("change", save_settings);
   }
   
   // 設定画面の背景クリックで閉じる
