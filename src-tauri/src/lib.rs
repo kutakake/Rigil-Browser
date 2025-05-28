@@ -18,280 +18,258 @@ pub fn run() {
 }
 
 extern crate reqwest;
-#[tauri::command]
-fn greet(name: &str) -> String {
-    if name == "" {
-        return "".to_string();
+
+// URLを正規化する関数
+fn normalize_url(name: &str) -> String {
+    if name.is_empty() {
+        return String::new();
     }
-    if name.contains("rigil:newtab") || name == String::from("") {
-        return "<title>New tab</title>New tab".to_string();
+    
+    let mut namestring = name.to_string();
+    let name_length = namestring.len();
+    let check_length = if name_length >= 8 { 8 } else { name_length };
+    let first_part: String = namestring.chars().take(check_length).collect();
+    
+    if !first_part.contains("http://") && !first_part.contains("https://") {
+        namestring = format!("https://{}", namestring);
     }
-    let mut namestring: String = name.to_string();
-    let namevec: Vec<char> = namestring.chars().collect();
-    let mut firsteight: String = "".to_string();
-    let name_length: usize = namestring.len();
-    if name_length >= 8 {
-        //URLの最初の8文字までを取得
-        for i in 0..8 {
-            firsteight = format!("{}{}", firsteight, namevec[i].to_string());
+    
+    namestring
+}
+
+// ベースURLを取得する関数
+fn get_base_url(url: &str) -> String {
+    let url_chars: Vec<char> = url.chars().collect();
+    let mut base_url = String::new();
+    let mut slash_count = 0;
+    
+    for (i, &ch) in url_chars.iter().enumerate() {
+        base_url.push(ch);
+        if ch == '/' {
+            slash_count += 1;
+            if slash_count == 3 {
+                break;
+            }
         }
-        if !(firsteight.contains("http://")) && !(firsteight.contains("https://")) {
-            //urlのはじめにhttp://かhttps://がなければ追加する
-            namestring = format!("{}{}", "https://", namestring);
+    }
+    
+    // パス部分の処理
+    if slash_count == 3 && url.len() > base_url.len() {
+        let remaining_path = &url[base_url.len()..];
+        if let Some(last_slash_pos) = remaining_path.rfind('/') {
+            base_url.push_str(&remaining_path[..=last_slash_pos]);
         }
+    }
+    
+    base_url
+}
+
+// 相対URLを絶対URLに変換する関数
+fn resolve_relative_url(href: &str, base_url: &str, current_url: &str) -> String {
+    if href.contains("http") {
+        return href.to_string();
+    }
+    
+    if href.starts_with('/') {
+        // 絶対パス（ルートからの相対パス）
+        let mut domain_only = String::new();
+        let mut slash_count = 0;
+        for ch in current_url.chars() {
+            domain_only.push(ch);
+            if ch == '/' {
+                slash_count += 1;
+                if slash_count == 3 {
+                    domain_only.pop();
+                    break;
+                }
+            }
+        }
+        format!("{}{}", domain_only, href)
     } else {
-        for i in 0..name_length {
-            firsteight = format!("{}{}", firsteight, namevec[i].to_string());
-        }
-        if !(firsteight.contains("http://")) && !(firsteight.contains("https://")) {
-            //urlのはじめにhttp://かhttps://がなければ追加する
-            namestring = format!("{}{}", "https://", namestring);
-        }
-    }
-    // 末尾のスラッシュ処理を削除（不要な自動追加を防ぐ）
-
-    let body: String = gethtml(&namestring);
-    let contents: Vec<char> = body.chars().collect();
-    let mut formatted_text: String = "".to_string();
-    let length: usize = contents.len();
-    let mut i: usize = 0;
-    let index_link_vec: Vec<char> = namestring.to_string().chars().collect();
-    let mut slashcount: usize = 0;
-    let mut index_link: String = "".to_string();
-    let link_length: usize = index_link_vec.len();
-
-    // ベースURLの取得（プロトコル + ドメイン + パス部分まで）
-    for i in 0..link_length {
-        index_link = format!("{}{}", index_link, index_link_vec[i]);
-        if index_link_vec[i] == '/' {
-            slashcount += 1;
-        }
-        if slashcount == 3 {
-            // 3つ目のスラッシュまで（https://example.com/）
-            break;
+        // 相対パス
+        if base_url.ends_with('/') {
+            format!("{}{}", base_url, href)
+        } else {
+            format!("{}/{}", base_url, href)
         }
     }
+}
 
-    // パス部分がある場合は、最後のスラッシュまでを取得
-    if slashcount == 3 && link_length > index_link.len() {
-        let remaining_path: String = namestring[index_link.len()..].to_string();
-        if remaining_path.contains('/') {
-            // 最後のスラッシュまでのパスを取得
-            let last_slash_pos = remaining_path.rfind('/').unwrap();
-            index_link = format!("{}{}", index_link, &remaining_path[..=last_slash_pos]);
-        } else if !remaining_path.is_empty() {
-            // ファイル名がある場合は、ディレクトリ部分のみ取得
-            index_link = format!("{}{}", index_link, "");
-        }
-    }
-
-    formatted_text = format!(
-        "{}{}",
-        formatted_text, "<script type=\"module\" src=\"/main.js\" defer></script>"
-    );
-    loop {
-        if i >= length {
-            break;
-        }
-        if contents[i] == '<' {
-            let mut tag: String = "".to_string();
-            let mut tag_end_point: usize = 0;
-            loop {
-                tag = format!("{}{}", tag, contents[i]);
+// hrefを抽出する関数
+fn extract_href(tag: &str) -> String {
+    let tag_chars: Vec<char> = tag.chars().collect();
+    let mut href = String::new();
+    let mut i = 1;
+    
+    while i < tag_chars.len() {
+        if tag_chars[i] == '"' {
+            i += 1;
+            while i < tag_chars.len() && tag_chars[i] != '"' {
+                href.push(tag_chars[i]);
                 i += 1;
-                if contents[i] == '>' {
-                    tag = format!("{}{}", tag, contents[i]);
+            }
+            break;
+        }
+        i += 1;
+    }
+    
+    href
+}
+
+// リンクタグを処理する関数
+fn process_link_tag(tag: &str, contents: &[char], i: &mut usize, base_url: &str, current_url: &str) -> String {
+    let href = extract_href(tag);
+    let resolved_href = resolve_relative_url(&href, base_url, current_url);
+    
+    // リンクテキストを取得
+    let mut full_tag = tag.to_string();
+    if *i < contents.len() && contents[*i] != '<' {
+        while *i < contents.len() && contents[*i] != '<' {
+            full_tag.push(contents[*i]);
+            *i += 1;
+        }
+        if *i < contents.len() {
+            while *i < contents.len() && contents[*i] != '>' {
+                full_tag.push(contents[*i]);
+                *i += 1;
+            }
+            if *i < contents.len() {
+                full_tag.push(contents[*i]);
+            }
+        }
+    }
+    
+    if full_tag.contains("</a>") {
+        let link_text = extract_link_text(&full_tag);
+        format!(
+            "<button id=\"hreftag\" onclick=\"javascript:{{document.getElementById('greet-input').value='{}';window.globalFunction.greet()}}\">{}</button>",
+            resolved_href, link_text
+        )
+    } else {
+        String::new()
+    }
+}
+
+// リンクテキストを抽出する関数
+fn extract_link_text(full_tag: &str) -> String {
+    let tag_chars: Vec<char> = full_tag.chars().collect();
+    let mut text = String::new();
+    let mut in_content = false;
+    let mut i = 0;
+    
+    while i < tag_chars.len() {
+        if !in_content && tag_chars[i] == '>' {
+            in_content = true;
+            i += 1;
+            continue;
+        }
+        
+        if in_content {
+            if i + 3 < tag_chars.len() && 
+               tag_chars[i] == '<' && tag_chars[i+1] == '/' && 
+               tag_chars[i+2] == 'a' && tag_chars[i+3] == '>' {
+                break;
+            }
+            text.push(tag_chars[i]);
+        }
+        i += 1;
+    }
+    
+    text
+}
+
+// スクリプトタグをスキップする関数
+fn skip_script_tag(contents: &[char], i: &mut usize) {
+    let mut tag = String::new();
+    while *i < contents.len() {
+        tag.push(contents[*i]);
+        if contents[*i] == '>' && tag.contains("</script>") {
+            break;
+        }
+        *i += 1;
+    }
+}
+
+// スタイルタグをスキップする関数
+fn skip_style_tag(contents: &[char], i: &mut usize) {
+    let mut tag = String::new();
+    while *i < contents.len() {
+        tag.push(contents[*i]);
+        if contents[*i] == '>' && tag.contains("</style>") {
+            break;
+        }
+        *i += 1;
+    }
+}
+
+// HTMLを解析してテキストに変換する関数
+fn parse_html_to_text(html: &str, base_url: &str, current_url: &str) -> String {
+    let contents: Vec<char> = html.chars().collect();
+    let mut formatted_text = "<script type=\"module\" src=\"/main.js\" defer></script>".to_string();
+    let mut i = 0;
+    
+    while i < contents.len() {
+        if contents[i] == '<' {
+            let mut tag = String::new();
+            
+            // タグを読み取り
+            while i < contents.len() {
+                tag.push(contents[i]);
+                i += 1;
+                if i < contents.len() && contents[i] == '>' {
+                    tag.push(contents[i]);
                     i += 1;
                     break;
                 }
             }
+            
+            // タグの種類に応じて処理
             if tag.contains("<a href") {
-                let mut tagpoint: usize = 1;
-                let mut tagvec: Vec<char> = tag.chars().collect();
-                let mut tag_length = tagvec.len();
-                let mut href: String = "".to_string();
-                loop {
-                    //このブロックでhrefの中身を取得
-                    if tagpoint >= tag_length {
-                        break;
-                    }
-                    if tagvec[tagpoint] == '\"' {
-                        loop {
-                            tagpoint += 1;
-                            if tagpoint >= tag_length {
-                                break;
-                            } else if tagvec[tagpoint] == '\"' {
-                                break;
-                            } /* else if tagvec[tagpoint] == ' ' {
-                                  break;
-                              }*/
-                            href = format!("{}{}", href, tagvec[tagpoint]);
-                        }
-                        break;
-                    }
-                    tagpoint += 1;
-                }
-                if href.contains("http") { //hrefが相対パスだった場合今いる場所のURLを先頭につける
-                } else {
-                    // 相対パスの適切な結合処理
-                    if href.starts_with('/') {
-                        // 絶対パス（ルートからの相対パス）の場合
-                        // プロトコル + ドメインのみを取得
-                        let mut domain_only = String::new();
-                        let mut slash_count = 0;
-                        for ch in namestring.chars() {
-                            domain_only.push(ch);
-                            if ch == '/' {
-                                slash_count += 1;
-                                if slash_count == 3 {
-                                    domain_only.pop(); // 最後のスラッシュを削除
-                                    break;
-                                }
-                            }
-                        }
-                        href = format!("{}{}", domain_only, href);
-                    } else {
-                        // 相対パス（現在のディレクトリからの相対パス）の場合
-                        if index_link.ends_with('/') {
-                            href = format!("{}{}", index_link, href);
-                        } else {
-                            href = format!("{}/{}", index_link, href);
-                        }
-                    }
-                }
-                if contents[i] != '<' {
-                    loop {
-                        tag = format!("{}{}", tag, contents[i]);
-                        i += 1;
-                        if contents[i] == '>' {
-                            break;
-                        }
-                    }
-                    tag = format!("{}{}", tag, contents[i]);
-                    if tag.contains("</a>") {
-                        tagvec = tag.chars().collect();
-                        tag_length = tagvec.len();
-                        for ii in 1..tag_length {
-                            if tagvec[ii] == '>' {
-                                tag_end_point = ii;
-                                break;
-                            }
-                        }
-                        for _ii in 1..tag_end_point {
-                            tagvec.remove(1);
-                            tag_length -= 1;
-                        }
-                        for _ii in 1..4 {
-                            tagvec.pop();
-                            tag_length -= 1;
-                        }
-                        tag = String::from("");
-                        for ii in 2..tag_length - 1 {
-                            tag = format!("{}{}", tag, tagvec[ii]);
-                        }
-
-                        //ハイパーリンク
-                        let mut hreftag = format!(
-
-                            "{}{}{}",
-                            "<button id=\"hreftag\" onclick=\"javascript:{document.getElementById('greet-input').value='",
-                            href,
-                            "';window.globalFunction.greet()}\">"
-                            /*
-                            "{}{}{}{}{}",
-                            "<a id=\"hreftag\" href=\"",
-                            href,
-                            "\" onclick=\"javascript:{document.getElementById('greet-input').value='",
-                            href,
-                            "';window.globalFunction.greet()}\">"
-                            */
-                        );
-                        hreftag = format!("{}{}{}", hreftag, tag, "</button>");
-                        formatted_text = format!("{}{}", formatted_text, hreftag);
-                    }
-                }
+                let link_html = process_link_tag(&tag, &contents, &mut i, base_url, current_url);
+                formatted_text.push_str(&link_html);
             } else if tag.contains("<script") {
-                //scriptはスキップする
-                loop {
-                    if i >= length {
-                        break;
-                    }
-                    tag = format!("{}{}", tag, contents[i]);
-                    if contents[i] == '>' {
-                        if tag.contains("</script>") {
-                            break;
-                        }
-                    }
-                    i += 1;
-                }
+                skip_script_tag(&contents, &mut i);
             } else if tag.contains("<style") {
-                //styleもスキップする
-                loop {
-                    if i >= length {
-                        break;
-                    }
-                    tag = format!("{}{}", tag, contents[i]);
-                    if contents[i] == '>' {
-                        if tag.contains("</style>") {
-                            break;
-                        }
-                    }
-                    i += 1;
-                }
+                skip_style_tag(&contents, &mut i);
             } else {
-                //is_formatted()はリストに挙げられたタグがあれば入力の末尾に">"をつけて返し、なければ""を返す
-                formatted_text = format!("{}{}", formatted_text, is_formatted(tag));
+                formatted_text.push_str(&is_formatted(tag));
             }
-            if i < length {
-                if contents[i] == '<' {
-                    continue;
-                }
+            
+            if i < contents.len() && contents[i] == '<' {
+                continue;
             }
         }
-
-        if i < length {
+        
+        if i < contents.len() {
             if contents[i] == '>' {
                 i += 1;
                 continue;
             }
-            formatted_text = format!("{}{}", formatted_text, contents[i]);
+            formatted_text.push(contents[i]);
             i += 1;
-        } else {
-            break;
         }
     }
+    
     formatted_text
 }
-/*
-use std::fs::File;
-use std::io::{BufRead, BufReader, Read};
-use std::path::Path;
+
 #[tauri::command]
-fn read() -> String {
-    let path = "status.txt";
-    if !Path::is_file(Path::new(path)) {
-        File::create(path);
+fn greet(name: &str) -> String {
+    if name.is_empty() {
+        return String::new();
     }
-    let mut f = File::open(path);
-
-    let mut contents = String::new();
-
-    f.expect("something went wrong")
-        .read_to_string(&mut contents);
-
-    contents
+    
+    if name.contains("rigil:newtab") {
+        return "<title>New tab</title>New tab".to_string();
+    }
+    
+    let normalized_url = normalize_url(name);
+    let base_url = get_base_url(&normalized_url);
+    let html_body = gethtml(&normalized_url);
+    
+    parse_html_to_text(&html_body, &base_url, &normalized_url)
 }
 
-use std::io::{BufWriter, Write};
-#[tauri::command]
-fn save(tabs: String) -> String {
-    let path = "status.txt";
-    let f = File::create(path).expect("a");
-    let mut bfw = BufWriter::new(f);
-    let _ = bfw.write(tabs.as_bytes()).expect("a");
-    String::from("done")
-}
-*/
 fn gethtml(url: &str) -> String {
     let client = reqwest::blocking::Client::new();
     let mut query = vec![];
