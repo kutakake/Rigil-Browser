@@ -193,7 +193,6 @@ fn parse_html_to_text(html: &str, base_url: &str, current_url: &str) -> String {
                 }
             }
 
-            // タグの種類に応じて処理
             let tag_lower = tag.to_lowercase();
             if tag_lower.contains("<a ") || tag_lower == "<a>" {
                 let link_html = process_link_tag(&tag, &contents, &mut i, base_url, current_url);
@@ -230,11 +229,13 @@ fn greet(name: &str) -> String {
 }
 
 fn gethtml(url: &str) -> String {
-    let client = reqwest::blocking::Client::new();
+    let client = reqwest::blocking::Client::builder()
+        .user_agent("Lynx/2.8.9rel.1 libwww-FM/2.14 SSL-MM/1.4.1 OpenSSL/1.1.1k")
+        .build()
+        .unwrap();
     let mut query = vec![];
     let url_length = url.len();
     let url_vec: Vec<char> = url.chars().collect();
-    //let mut queries: String = Default::default();
     if url.contains("?") {
         //クエリパラメータを取得
         let mut i: usize = 0;
@@ -285,7 +286,9 @@ fn gethtml(url: &str) -> String {
         url_without_query = format!("{}{}", url_without_query, url_vec[i]);
         i += 1;
     }
-    match client.get(url_without_query).query(&query).send() {
+    match client.get(url_without_query)
+        .query(&query)
+        .send() {
         Ok(html) => return html.text().unwrap(),
 
         Err(e) => {

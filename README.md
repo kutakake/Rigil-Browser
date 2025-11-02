@@ -13,3 +13,6 @@ Tabs, history, color edit, [proxy](https://github.com/kutakake/rigil-proxy)
 ## これは何？
 
 これはTauriで作られたテキストブラウザです。Windows、Linux、Androidで動作することが確認されています。
+
+## 特徴
+タブ、履歴、配色の変更、[プロキシ](https://github.com/kutakake/rigil-proxy)
