@@ -1,0 +1,3 @@
+[submodule "src-tauri/reader_mode_maker"]
+	path = src-tauri/reader_mode_maker
+	url = https://github.com/kutakake/reader_mode_maker

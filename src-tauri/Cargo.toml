@@ -17,6 +17,7 @@ serde_json = "1"
 reqwest = { version = "*", default-features = false, features = ["rustls-tls", "blocking"] }
 tokio = { version = "*", features = ["full"] }
 tauri-plugin-shell = "2.0.0-rc.0"
+reader_mode_maker = { path = "./reader_mode_maker" }
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
