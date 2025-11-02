@@ -15,7 +15,7 @@ window.globalFunction = {
   greet,
   show_hide_tabs,
   add_tab,
-  close_tab,
+  remove_tab,
   switch_tab,
   open_settings,
   close_settings,

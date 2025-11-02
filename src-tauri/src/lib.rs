@@ -24,16 +24,16 @@ fn normalize_url(name: &str) -> String {
     if name.is_empty() {
         return String::new();
     }
-    
+
     let mut namestring = name.to_string();
     let name_length = namestring.len();
     let check_length = if name_length >= 8 { 8 } else { name_length };
     let first_part: String = namestring.chars().take(check_length).collect();
-    
+
     if !first_part.contains("http://") && !first_part.contains("https://") {
         namestring = format!("https://{}", namestring);
     }
-    
+
     namestring
 }
 
@@ -42,7 +42,7 @@ fn get_base_url(url: &str) -> String {
     let url_chars: Vec<char> = url.chars().collect();
     let mut base_url = String::new();
     let mut slash_count = 0;
-    
+
     for (i, &ch) in url_chars.iter().enumerate() {
         base_url.push(ch);
         if ch == '/' {
@@ -52,7 +52,7 @@ fn get_base_url(url: &str) -> String {
             }
         }
     }
-    
+
     // パス部分の処理
     if slash_count == 3 && url.len() > base_url.len() {
         let remaining_path = &url[base_url.len()..];
@@ -60,7 +60,7 @@ fn get_base_url(url: &str) -> String {
             base_url.push_str(&remaining_path[..=last_slash_pos]);
         }
     }
-    
+
     base_url
 }
 
@@ -69,7 +69,7 @@ fn resolve_relative_url(href: &str, base_url: &str, current_url: &str) -> String
     if href.contains("http") {
         return href.to_string();
     }
-    
+
     if href.starts_with('/') {
         // 絶対パス（ルートからの相対パス）
         let mut domain_only = String::new();
@@ -100,7 +100,7 @@ fn extract_href(tag: &str) -> String {
     let tag_chars: Vec<char> = tag.chars().collect();
     let mut href = String::new();
     let mut i = 1;
-    
+
     while i < tag_chars.len() {
         if tag_chars[i] == '"' {
             i += 1;
@@ -112,7 +112,7 @@ fn extract_href(tag: &str) -> String {
         }
         i += 1;
     }
-    
+
     href
 }
 
@@ -122,19 +122,19 @@ fn process_link_tag(tag: &str, contents: &[char], i: &mut usize, base_url: &str,
     if href.is_empty() {
         return String::new();
     }
-    
+
     let resolved_href = resolve_relative_url(&href, base_url, current_url);
-    
+
     // リンクテキストを取得するため、</a>まで読み進める
     let mut link_content = String::new();
     let mut tag_depth = 0;
-    
+
     while *i < contents.len() {
         if contents[*i] == '<' {
             // 新しいタグの開始をチェック
             let mut peek_tag = String::new();
             let mut peek_i = *i;
-            
+
             while peek_i < contents.len() && contents[peek_i] != '>' {
                 peek_tag.push(contents[peek_i]);
                 peek_i += 1;
@@ -142,7 +142,7 @@ fn process_link_tag(tag: &str, contents: &[char], i: &mut usize, base_url: &str,
             if peek_i < contents.len() {
                 peek_tag.push(contents[peek_i]);
             }
-            
+
             if peek_tag.to_lowercase().contains("</a>") {
                 // 終了タグが見つかった
                 *i = peek_i + 1;
@@ -151,7 +151,7 @@ fn process_link_tag(tag: &str, contents: &[char], i: &mut usize, base_url: &str,
                 // ネストしたaタグ
                 tag_depth += 1;
             }
-            
+
             // タグをスキップ
             *i = peek_i + 1;
         } else {
@@ -160,54 +160,30 @@ fn process_link_tag(tag: &str, contents: &[char], i: &mut usize, base_url: &str,
             *i += 1;
         }
     }
-    
+
     // リンクテキストが空の場合はURLを使用
     let display_text = if link_content.trim().is_empty() {
         resolved_href.clone()
     } else {
         link_content.trim().to_string()
     };
-    
+
     format!(
         "<button id=\"hreftag\" onclick=\"javascript:{{document.getElementById('greet-input').value='{}';window.globalFunction.greet()}}\">{}</button>",
         resolved_href, display_text
     )
 }
-
-// スクリプトタグをスキップする関数
-fn skip_script_tag(contents: &[char], i: &mut usize) {
-    let mut tag = String::new();
-    while *i < contents.len() {
-        tag.push(contents[*i]);
-        if contents[*i] == '>' && tag.contains("</script>") {
-            break;
-        }
-        *i += 1;
-    }
-}
-
-// スタイルタグをスキップする関数
-fn skip_style_tag(contents: &[char], i: &mut usize) {
-    let mut tag = String::new();
-    while *i < contents.len() {
-        tag.push(contents[*i]);
-        if contents[*i] == '>' && tag.contains("</style>") {
-            break;
-        }
-        *i += 1;
-    }
-}
-
+use reader_mode_maker;
 // HTMLを解析してテキストに変換する関数
 fn parse_html_to_text(html: &str, base_url: &str, current_url: &str) -> String {
-    let contents: Vec<char> = html.chars().collect();
+    let culled_html = reader_mode_maker::culling(html);
+    let contents: Vec<char> = culled_html.chars().collect();
     let mut formatted_text = "<script type=\"module\" src=\"/main.js\" defer></script>".to_string();
     let mut i = 0;
-    
     while i < contents.len() {
         if contents[i] == '<' {
             let mut tag = String::new();
-            
+
             // タグを読み取り
             while i < contents.len() {
                 tag.push(contents[i]);
@@ -216,7 +192,7 @@ fn parse_html_to_text(html: &str, base_url: &str, current_url: &str) -> String {
                     break;
                 }
             }
-            
+
             // タグの種類に応じて処理
             let tag_lower = tag.to_lowercase();
             if tag_lower.contains("<a ") || tag_lower == "<a>" {
@@ -224,12 +200,8 @@ fn parse_html_to_text(html: &str, base_url: &str, current_url: &str) -> String {
                 if !link_html.is_empty() {
                     formatted_text.push_str(&link_html);
                 }
-            } else if tag_lower.contains("<script") {
-                skip_script_tag(&contents, &mut i);
-            } else if tag_lower.contains("<style") {
-                skip_style_tag(&contents, &mut i);
             } else {
-                formatted_text.push_str(&is_formatted(tag));
+                formatted_text = format!("{}{}", formatted_text, tag);
             }
         } else {
             // 通常のテキスト
@@ -237,7 +209,6 @@ fn parse_html_to_text(html: &str, base_url: &str, current_url: &str) -> String {
             i += 1;
         }
     }
-    
     formatted_text
 }
 
@@ -246,15 +217,15 @@ fn greet(name: &str) -> String {
     if name.is_empty() {
         return String::new();
     }
-    
+
     if name.contains("rigil:newtab") {
         return "<title>New tab</title>New tab".to_string();
     }
-    
+
     let normalized_url = normalize_url(name);
     let base_url = get_base_url(&normalized_url);
     let html_body = gethtml(&normalized_url);
-    
+
     parse_html_to_text(&html_body, &base_url, &normalized_url)
 }
 
@@ -327,29 +298,6 @@ fn gethtml(url: &str) -> String {
     };
 }
 
-fn is_formatted(tag: String) -> String {
-    //title, br, h, b, i, ul, li, ol
-    let tags: Vec<&str> = vec![
-        "<title", "</title", "<br", "<br /", "<h1", "</h1", "<h2", "</h2", "<h3", "</h3", "<h4",
-        "</h4", "<h5", "</h5", "<h6", "</h6", "<b>", "</b>", "<i>", "</i>", "<li>", "<li ",
-        "</li>", "<ul", "</ul", "<ol", "<ol ", "</ol",
-    ];
-    let length_tags: usize = tags.len();
-    for i in 0..length_tags - 1 {
-        if tag.contains(tags[i]) {
-            let output: String = tags[i].to_string();
-            let vec_output: Vec<char> = output.chars().collect();
-            let length_output: usize = output.len();
-            if vec_output[length_output - 1] == '>' {
-                return output;
-            } else {
-                return format!("{}{}", output, ">");
-            }
-        }
-    }
-    String::from("")
-}
-
 #[tauri::command]
 async fn save_tabs(app: tauri::AppHandle, tabs: String, current_tab_number: i32, current_page_number: i32) -> Result<String, String> {
     let tab_data = TabData {
@@ -357,24 +305,24 @@ async fn save_tabs(app: tauri::AppHandle, tabs: String, current_tab_number: i32,
         current_tab_number,
         current_page_number,
     };
-    
+
     let json_data = serde_json::to_string(&tab_data).map_err(|e| e.to_string())?;
-    
+
     // アプリデータディレクトリのパスを取得（WindowsとAndroidの両方に対応）
     let app_data_dir = app.path().app_data_dir()
         .or_else(|_| app.path().app_local_data_dir())
         .map_err(|e| format!("アプリデータディレクトリの取得に失敗: {}", e))?;
     let rigil_dir = app_data_dir.join("rigil");
     let tabs_file = rigil_dir.join("tabs.json");
-    
+
     // ディレクトリが存在しない場合は作成
     if !rigil_dir.exists() {
         std::fs::create_dir_all(&rigil_dir).map_err(|e| format!("ディレクトリ作成エラー: {}", e))?;
     }
-    
+
     // ファイルに書き込み
     std::fs::write(&tabs_file, &json_data).map_err(|e| format!("ファイル書き込みエラー: {}", e))?;
-    
+
     Ok("保存完了".to_string())
 }
 
@@ -386,18 +334,18 @@ async fn read_tabs(app: tauri::AppHandle) -> Result<String, String> {
         .map_err(|e| format!("アプリデータディレクトリの取得に失敗: {}", e))?;
     let rigil_dir = app_data_dir.join("rigil");
     let tabs_file = rigil_dir.join("tabs.json");
-    
+
     // ファイルが存在しない場合はnullを返す
     if !tabs_file.exists() {
         return Ok("null".to_string());
     }
-    
+
     // ファイルを読み込み
     let json_data = std::fs::read_to_string(&tabs_file).map_err(|e| format!("ファイル読み込みエラー: {}", e))?;
-    
+
     // JSONをパース
     let tab_data: TabData = serde_json::from_str(&json_data).map_err(|e| format!("JSON解析エラー: {}", e))?;
-    
+
     // タブデータ全体をJSONとして返す
     Ok(serde_json::to_string(&tab_data).map_err(|e| format!("JSON変換エラー: {}", e))?)
 }
