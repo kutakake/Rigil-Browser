@@ -110,6 +110,31 @@
           </div>
           
           <div class="settings_section">
+            <h3 data-i18n="proxy_settings">プロキシ設定</h3>
+            <div class="setting_item">
+              <label>
+                <input type="checkbox" id="use_proxy">
+                <span data-i18n="use_proxy">Rigil Proxyを使用する</span>
+              </label>
+            </div>
+            <div class="setting_item" id="proxy_url_setting">
+              <label data-i18n="proxy_url">プロキシURL</label>
+              <input type="text" id="proxy_url" placeholder="http://127.0.0.1:8080" value="http://127.0.0.1:8080">
+            </div>
+            <div class="setting_item" id="proxy_status">
+              <label data-i18n="proxy_status">プロキシ状態</label>
+              <span id="proxy_status_text" data-i18n="proxy_disconnected">未接続</span>
+              <button type="button" onclick="window.globalFunction.test_proxy_connection()" id="test_proxy_button" data-i18n="test_connection">接続テスト</button>
+            </div>
+            <div class="setting_item">
+              <p class="setting_description" data-i18n="proxy_description">
+                Rigil Proxyを使用すると、外部サーバー経由でHTML軽量化を行います。
+                プロキシサーバーが起動していることを確認してください。
+              </p>
+            </div>
+          </div>
+          
+          <div class="settings_section">
             <h3 data-i18n="privacy">プライバシー</h3>
             <div class="setting_item">
               <button type="button" onclick="window.globalFunction.clear_history()" class="danger_button" data-i18n="clear_history">

@@ -93,7 +93,22 @@ async function greet() {
 }
 
 async function get_page() {
-  return await invoke("greet", { name: greetInputEl.value });
+  const useProxy = localStorage.getItem("use_proxy") === "true";
+  
+  if (useProxy) {
+    try {
+      // プロキシ経由でページを取得
+      return await get_page_via_proxy(greetInputEl.value);
+    } catch (error) {
+      console.error("プロキシ経由でのページ取得に失敗:", error);
+      // プロキシが失敗した場合は通常の方法にフォールバック
+      console.log("通常の方法でページを取得します...");
+      return await invoke("greet", { name: greetInputEl.value });
+    }
+  } else {
+    // 通常の方法でページを取得
+    return await invoke("greet", { name: greetInputEl.value });
+  }
 }
 
 async function navigateHistory(direction) {

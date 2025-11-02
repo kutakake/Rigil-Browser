@@ -27,6 +27,22 @@ function open_settings() {
     fontSizeSlider.addEventListener("input", handleFontSizeChange);
   }
   
+  // プロキシ設定のイベントリスナーを設定
+  const useProxyCheckbox = document.getElementById("use_proxy");
+  if (useProxyCheckbox) {
+    useProxyCheckbox.addEventListener("change", function() {
+      toggle_proxy_settings();
+      save_settings();
+    });
+  }
+  
+  const proxyUrlInput = document.getElementById("proxy_url");
+  if (proxyUrlInput) {
+    proxyUrlInput.addEventListener("input", function() {
+      save_settings();
+    });
+  }
+  
   // メニューを閉じる
   if (tabs_shown == 1) {
     show_hide_tabs();
@@ -83,15 +99,15 @@ function load_settings() {
   // タブ自動保存設定
   const autoSaveCheckbox = document.getElementById("auto_save_tabs");
   if (autoSaveCheckbox) {
-    const autoSaveTabs = autoSaveCheckbox.checked;
-    localStorage.setItem("auto_save_tabs", autoSaveTabs);
+    const autoSaveTabs = localStorage.getItem("auto_save_tabs") === "true";
+    autoSaveCheckbox.checked = autoSaveTabs;
   }
   
   // 画像表示設定
   const showImagesCheckbox = document.getElementById("show_images");
   if (showImagesCheckbox) {
-    const showImages = showImagesCheckbox.checked;
-    localStorage.setItem("show_images", showImages);
+    const showImages = localStorage.getItem("show_images") === "true";
+    showImagesCheckbox.checked = showImages;
   }
   
   // タブの閉じるボタンの位置設定
@@ -100,6 +116,23 @@ function load_settings() {
   if (tabCloseButtonSelect) {
     tabCloseButtonSelect.value = tabCloseButtonPosition;
   }
+  
+  // プロキシ設定
+  const useProxy = localStorage.getItem("use_proxy") === "true";
+  const proxyUrl = localStorage.getItem("proxy_url") || "http://127.0.0.1:8080";
+  
+  const useProxyCheckbox = document.getElementById("use_proxy");
+  const proxyUrlInput = document.getElementById("proxy_url");
+  
+  if (useProxyCheckbox) {
+    useProxyCheckbox.checked = useProxy;
+  }
+  if (proxyUrlInput) {
+    proxyUrlInput.value = proxyUrl;
+  }
+  
+  // プロキシ設定の表示/非表示を制御
+  toggle_proxy_settings();
   
   // カラー設定の表示/非表示を制御
   toggle_color_settings();
@@ -149,6 +182,23 @@ function save_settings() {
   // タブの閉じるボタンの位置設定
   const tabCloseButtonPosition = document.getElementById("tab_close_button_position").value;
   localStorage.setItem("tab_close_button_position", tabCloseButtonPosition);
+  
+  // プロキシ設定
+  const useProxyCheckbox = document.getElementById("use_proxy");
+  const proxyUrlInput = document.getElementById("proxy_url");
+  
+  if (useProxyCheckbox) {
+    const useProxy = useProxyCheckbox.checked;
+    localStorage.setItem("use_proxy", useProxy);
+  }
+  
+  if (proxyUrlInput) {
+    const proxyUrl = proxyUrlInput.value;
+    localStorage.setItem("proxy_url", proxyUrl);
+  }
+  
+  // プロキシ設定の表示/非表示を制御
+  toggle_proxy_settings();
   
   // テーマを適用
   apply_theme(themePreset, baseColor, accentColor, textColor);
@@ -667,11 +717,99 @@ function initialize_app_settings() {
 function change_language(language) {
   if (window.i18n) {
     window.i18n.setLanguage(language);
-    
-    // 言語選択ドロップダウンの値を更新
-    const languageSelect = document.getElementById("language_select");
-    if (languageSelect) {
-      languageSelect.value = language;
+    localStorage.setItem("language", language);
+  }
+}
+
+// プロキシ設定の表示/非表示を制御
+function toggle_proxy_settings() {
+  const useProxyCheckbox = document.getElementById("use_proxy");
+  const proxyUrlSetting = document.getElementById("proxy_url_setting");
+  const proxyStatus = document.getElementById("proxy_status");
+  
+  if (useProxyCheckbox && proxyUrlSetting && proxyStatus) {
+    if (useProxyCheckbox.checked) {
+      proxyUrlSetting.style.display = "block";
+      proxyStatus.style.display = "block";
+    } else {
+      proxyUrlSetting.style.display = "none";
+      proxyStatus.style.display = "none";
     }
+  }
+}
+
+// プロキシ接続テスト
+async function test_proxy_connection() {
+  const proxyUrl = localStorage.getItem("proxy_url") || "http://127.0.0.1:8080";
+  const statusText = document.getElementById("proxy_status_text");
+  const testButton = document.getElementById("test_proxy_button");
+  
+  if (statusText) {
+    statusText.textContent = "接続中...";
+    statusText.style.color = "#666";
+  }
+  
+  if (testButton) {
+    testButton.disabled = true;
+    testButton.textContent = "テスト中...";
+  }
+  
+  try {
+    // プロキシサーバーの生存確認
+    const response = await fetch(proxyUrl, {
+      method: 'GET',
+      mode: 'cors',
+      timeout: 5000
+    });
+    
+    if (response.ok) {
+      if (statusText) {
+        statusText.textContent = "接続成功";
+        statusText.style.color = "#4CAF50";
+      }
+    } else {
+      throw new Error(`HTTP ${response.status}`);
+    }
+  } catch (error) {
+    console.error("プロキシ接続テストエラー:", error);
+    if (statusText) {
+      statusText.textContent = "接続失敗";
+      statusText.style.color = "#f44336";
+    }
+  } finally {
+    if (testButton) {
+      testButton.disabled = false;
+      testButton.textContent = "接続テスト";
+    }
+  }
+}
+
+// プロキシ経由でページを取得
+async function get_page_via_proxy(url) {
+  const proxyUrl = localStorage.getItem("proxy_url") || "http://127.0.0.1:8080";
+  
+  try {
+    const response = await fetch(`${proxyUrl}/api/process?url=${encodeURIComponent(url)}`, {
+      method: 'GET',
+      mode: 'cors',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success && data.data) {
+      return data.data;
+    } else {
+      throw new Error(data.error || "プロキシからの応答が無効です");
+    }
+  } catch (error) {
+    console.error("プロキシ経由でのページ取得エラー:", error);
+    throw error;
   }
 } 

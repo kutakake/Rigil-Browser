@@ -46,10 +46,17 @@ document.addEventListener("DOMContentLoaded", async function() {
       await navigateHistory(1); // 進む
     }
   });
-
+  /*
+  new AndroidBackPressedController().setListener(async () => {
+    await navigateHistory(-1);
+    return false;
+  });
+  */
+  /*
   window.addEventListener("ionBackButton", async (e) => {
     await navigateHistory(-1);
   });
+  */
   
   // 設定画面のイベントリスナーを設定
   setupSettingsEventListeners();

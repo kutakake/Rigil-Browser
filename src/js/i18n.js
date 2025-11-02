@@ -6,88 +6,100 @@ class I18n {
         this.currentLanguage = 'ja'; // デフォルトは日本語
         this.translations = {
             ja: {
+                // 基本的なUI要素
+                "url_placeholder": "URLを入力...",
+                "new_tab": "+ 新しいタブ",
+                "close": "×",
+                
                 // 設定画面
-                settings: '設定',
-                close: '×',
-                display_settings: '表示設定',
-                theme_preset: 'テーマプリセット',
-                custom: 'カスタム',
-                light: 'ライト',
-                dark: 'ダーク',
-                auto: '自動',
-                base_color: 'ベースカラー（背景色）',
-                accent_color: 'アクセントカラー（ボタン等）',
-                text_color: '文字色',
-                link_color: 'リンク色',
-                reset_to_default: 'デフォルトに戻す',
-                font_size: 'フォントサイズ',
-                browser_settings: 'ブラウザ設定',
-                tab_close_button_position: 'タブの閉じるボタンの位置',
-                left: '左',
-                right: '右',
-                auto_save_tabs: 'タブの自動保存',
-                show_images: '画像を表示',
-                privacy: 'プライバシー',
-                clear_history: '履歴をクリア',
-                clear_cache: 'キャッシュをクリア',
-                information: '情報',
-                version: 'バージョン',
-                language: '言語',
+                "settings": "設定",
+                "display_settings": "表示設定",
+                "theme_preset": "テーマプリセット",
+                "custom": "カスタム",
+                "light": "ライト",
+                "dark": "ダーク",
+                "auto": "自動",
+                "base_color": "ベースカラー（背景色）",
+                "accent_color": "アクセントカラー（ボタン等）",
+                "text_color": "文字色",
+                "link_color": "リンク色",
+                "reset_to_default": "デフォルトに戻す",
+                "font_size": "フォントサイズ",
                 
-                // ツールバー
-                new_tab: '+ 新しいタブ',
-                url_placeholder: 'URLを入力...',
+                // ブラウザ設定
+                "browser_settings": "ブラウザ設定",
+                "tab_close_button_position": "タブの閉じるボタンの位置",
+                "left": "左",
+                "right": "右",
+                "auto_save_tabs": "タブの自動保存",
+                "show_images": "画像を表示",
                 
-                // 確認メッセージ
-                confirm_reset_theme: 'テーマをデフォルトに戻しますか？',
-                confirm_clear_history: '履歴をクリアしますか？この操作は元に戻せません。',
-                confirm_clear_cache: 'キャッシュをクリアしますか？',
+                // プロキシ設定
+                "proxy_settings": "プロキシ設定",
+                "use_proxy": "Rigil Proxyを使用する",
+                "proxy_url": "プロキシURL",
+                "proxy_status": "プロキシ状態",
+                "proxy_disconnected": "未接続",
+                "test_connection": "接続テスト",
+                "proxy_description": "Rigil Proxyを使用すると、外部サーバー経由でHTML軽量化を行います。プロキシサーバーが起動していることを確認してください。",
                 
-                // 完了メッセージ
-                history_cleared: '履歴がクリアされました。',
-                cache_cleared: 'キャッシュがクリアされました。'
+                // プライバシー
+                "privacy": "プライバシー",
+                "clear_history": "履歴をクリア",
+                "clear_cache": "キャッシュをクリア",
+                
+                // 言語・情報
+                "language": "言語",
+                "information": "情報",
+                "version": "バージョン"
             },
             en: {
+                // 基本的なUI要素
+                "url_placeholder": "Enter URL...",
+                "new_tab": "+ New Tab",
+                "close": "×",
+                
                 // 設定画面
-                settings: 'Settings',
-                close: '×',
-                display_settings: 'Display Settings',
-                theme_preset: 'Theme Preset',
-                custom: 'Custom',
-                light: 'Light',
-                dark: 'Dark',
-                auto: 'Auto',
-                base_color: 'Base Color (Background)',
-                accent_color: 'Accent Color (Buttons)',
-                text_color: 'Text Color',
-                link_color: 'Link Color',
-                reset_to_default: 'Reset to Default',
-                font_size: 'Font Size',
-                browser_settings: 'Browser Settings',
-                tab_close_button_position: 'Tab Close Button Position',
-                left: 'Left',
-                right: 'Right',
-                auto_save_tabs: 'Auto Save Tabs',
-                show_images: 'Show Images',
-                privacy: 'Privacy',
-                clear_history: 'Clear History',
-                clear_cache: 'Clear Cache',
-                information: 'Information',
-                version: 'Version',
-                language: 'Language',
+                "settings": "Settings",
+                "display_settings": "Display Settings",
+                "theme_preset": "Theme Preset",
+                "custom": "Custom",
+                "light": "Light",
+                "dark": "Dark",
+                "auto": "Auto",
+                "base_color": "Base Color (Background)",
+                "accent_color": "Accent Color (Buttons)",
+                "text_color": "Text Color",
+                "link_color": "Link Color",
+                "reset_to_default": "Reset to Default",
+                "font_size": "Font Size",
                 
-                // ツールバー
-                new_tab: '+ New Tab',
-                url_placeholder: 'Enter URL...',
+                // ブラウザ設定
+                "browser_settings": "Browser Settings",
+                "tab_close_button_position": "Tab Close Button Position",
+                "left": "Left",
+                "right": "Right",
+                "auto_save_tabs": "Auto Save Tabs",
+                "show_images": "Show Images",
                 
-                // 確認メッセージ
-                confirm_reset_theme: 'Reset theme to default?',
-                confirm_clear_history: 'Clear history? This action cannot be undone.',
-                confirm_clear_cache: 'Clear cache?',
+                // プロキシ設定
+                "proxy_settings": "Proxy Settings",
+                "use_proxy": "Use Rigil Proxy",
+                "proxy_url": "Proxy URL",
+                "proxy_status": "Proxy Status",
+                "proxy_disconnected": "Disconnected",
+                "test_connection": "Test Connection",
+                "proxy_description": "Using Rigil Proxy allows HTML optimization via external server. Make sure the proxy server is running.",
                 
-                // 完了メッセージ
-                history_cleared: 'History has been cleared.',
-                cache_cleared: 'Cache has been cleared.'
+                // プライバシー
+                "privacy": "Privacy",
+                "clear_history": "Clear History",
+                "clear_cache": "Clear Cache",
+                
+                // 言語・情報
+                "language": "Language",
+                "information": "Information",
+                "version": "Version"
             }
         };
         

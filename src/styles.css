@@ -395,49 +395,50 @@ button {
 }
 
 .settings_container {
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    width: 90%;
+    background: var(--base-color, #f6f6f6);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     max-width: 600px;
+    width: 90%;
     max-height: 80vh;
     overflow-y: auto;
+    position: relative;
 }
 
 .settings_header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #ddd;
+    padding: 20px 30px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    background: var(--accent-color, #4CAF50);
+    color: white;
+    border-radius: 8px 8px 0 0;
 }
 
 .settings_header h2 {
     margin: 0;
-    color: #333;
+    font-size: 1.5em;
+    font-weight: 500;
 }
 
 .close_button {
-    background-color: #ff4444;
-    color: white;
+    background: none;
     border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    font-size: 18px;
+    color: white;
+    font-size: 1.5em;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
 }
 
 .close_button:hover {
-    background-color: #cc3333;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .settings_content {
-    padding: 20px;
-    font-size: var(--content-font-size, 16px);
+    padding: 30px;
 }
 
 .settings_section {
@@ -445,97 +446,158 @@ button {
 }
 
 .settings_section h3 {
-    margin: 0 0 15px 0;
-    color: #333;
-    font-size: 18px;
-    border-bottom: 2px solid #4CAF50;
-    padding-bottom: 5px;
+    margin: 0 0 20px 0;
+    font-size: 1.2em;
+    color: var(--text-color, #0f0f0f);
+    border-bottom: 2px solid var(--accent-color, #4CAF50);
+    padding-bottom: 8px;
 }
 
 .setting_item {
+    margin-bottom: 20px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    padding: 10px 0;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .setting_item label {
     font-weight: 500;
-    color: #555;
+    color: var(--text-color, #0f0f0f);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.setting_item select,
-.setting_item input[type="range"] {
-    min-width: 120px;
+.setting_item input[type="text"],
+.setting_item input[type="url"],
+.setting_item select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background: white;
+    color: var(--text-color, #0f0f0f);
+    transition: border-color 0.2s;
+}
+
+.setting_item input[type="text"]:focus,
+.setting_item input[type="url"]:focus,
+.setting_item select:focus {
+    outline: none;
+    border-color: var(--accent-color, #4CAF50);
 }
 
 .setting_item input[type="checkbox"] {
     margin-right: 8px;
+    transform: scale(1.2);
+}
+
+.setting_item button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: var(--accent-color, #4CAF50);
+    color: white;
+}
+
+.setting_item button:hover {
+    background: var(--accent-hover, #45a049);
+}
+
+.setting_item button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.reset_button {
+    background: #ff9800 !important;
+    color: white;
+}
+
+.reset_button:hover {
+    background: #f57c00 !important;
+}
+
+.danger_button {
+    background: #f44336 !important;
+    color: white;
+}
+
+.danger_button:hover {
+    background: #d32f2f !important;
+}
+
+/* プロキシ設定専用のスタイル */
+.setting_description {
+    font-size: 13px;
+    color: #666;
+    margin: 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid var(--accent-color, #4CAF50);
+}
+
+#proxy_status_text {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+#proxy_status {
+    align-items: center;
+    flex-direction: row;
+    gap: 15px;
+}
+
+#test_proxy_button {
+    padding: 6px 12px;
+    font-size: 12px;
+    min-width: 80px;
+}
+
+/* プロキシ設定の表示/非表示制御 */
+#proxy_url_setting,
+#proxy_status {
+    display: none;
+}
+
+/* カラー設定のスタイル */
+.color_settings {
+    display: none;
 }
 
 .color_input_group {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
 }
 
 .color_input_group input[type="color"] {
-    width: 40px;
+    width: 50px;
     height: 40px;
-    padding: 0;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
     cursor: pointer;
 }
 
 .color_input_group input[type="text"] {
-    width: 80px;
-    padding: 6px 8px;
-    font-family: monospace;
-    font-size: 14px;
-    text-transform: uppercase;
+    flex: 1;
+    max-width: 120px;
 }
 
-.reset_button {
-    background-color: #666;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* フォントサイズスライダー */
+.setting_item input[type="range"] {
+    width: 200px;
+    margin-right: 10px;
 }
 
-.reset_button:hover {
-    background-color: #555;
-}
-
-.color_settings {
-    margin-left: 20px;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #fafafa;
-}
-
-.danger_button {
-    background-color: #ff4444;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.danger_button:hover {
-    background-color: #cc3333;
+#font_size_value {
+    font-weight: bold;
+    color: var(--accent-color, #4CAF50);
+    min-width: 40px;
 }
 
 /* ダークモード対応 */

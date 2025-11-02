@@ -9,3 +9,22 @@
 
 // このファイルは各モジュールが読み込まれた後に実行される
 // 必要に応じて追加の初期化処理をここに記述
+
+// グローバル関数を定義
+window.globalFunction = {
+  greet,
+  show_hide_tabs,
+  add_tab,
+  close_tab,
+  switch_tab,
+  open_settings,
+  close_settings,
+  save_settings,
+  reset_theme,
+  clear_history,
+  clear_cache,
+  change_language,
+  reflesh_page,
+  test_proxy_connection,
+  get_page_via_proxy
+};
