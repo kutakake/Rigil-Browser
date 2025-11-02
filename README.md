@@ -1,7 +1,15 @@
 # Tauri + Vanilla
 
-This template should help get you started developing with Tauri in vanilla HTML, CSS and Javascript.
+#EN
 
-## Recommended IDE Setup
+## What this is
+This is text browser made with Tauri. This is comfirmed to work on Windows, Linux, Android.
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## Features
+Tabs, history, color edit, [proxy](https://github.com/kutakake/rigil-proxy)
+
+#JA
+
+## これは何？
+
+これはTauriで作られたテキストブラウザです。Windows、Linux、Androidで動作することが確認されています。
