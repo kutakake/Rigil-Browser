@@ -24,7 +24,7 @@
     </div>
     <div id="errormessage">
     </div>
-    
+
     <!-- 設定画面 -->
     <div id="settings_screen" style="display: none;">
       <div class="settings_container">
@@ -85,7 +85,7 @@
               <span id="font_size_value">16px</span>
             </div>
           </div>
-          
+
           <div class="settings_section">
             <h3 data-i18n="browser_settings">ブラウザ設定</h3>
             <div class="setting_item">
@@ -108,7 +108,7 @@
               </label>
             </div>
           </div>
-          
+
           <div class="settings_section">
             <h3 data-i18n="proxy_settings">プロキシ設定</h3>
             <div class="setting_item">
@@ -120,6 +120,10 @@
             <div class="setting_item" id="proxy_url_setting">
               <label data-i18n="proxy_url">プロキシURL</label>
               <input type="text" id="proxy_url" placeholder="http://127.0.0.1:8080" value="http://127.0.0.1:8080">
+            </div>
+            <div class="setting_item" id="proxy_key_setting">
+              <label data-i18n="proxy_url">API key</label>
+              <input type="text" id="api_key" placeholder="API key..." value="">
             </div>
             <div class="setting_item" id="proxy_status">
               <label data-i18n="proxy_status">プロキシ状態</label>
@@ -133,7 +137,7 @@
               </p>
             </div>
           </div>
-          
+
           <div class="settings_section">
             <h3 data-i18n="privacy">プライバシー</h3>
             <div class="setting_item">
@@ -147,7 +151,7 @@
               </button>
             </div>
           </div>
-          
+
           <div class="settings_section">
             <h3 data-i18n="language">言語</h3>
             <div class="setting_item">
@@ -158,7 +162,7 @@
               </select>
             </div>
           </div>
-          
+
           <div class="settings_section">
             <h3 data-i18n="information">情報</h3>
             <div class="setting_item">
@@ -169,7 +173,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- URLバー、メニューボタン、リフレッシュボタンを画面下部に配置 -->
     <div id="bottom_toolbar">
       <!-- 通常時のツールバー -->
@@ -182,7 +186,7 @@
           </form>
         </div>
       </div>
-      
+
       <!-- メニュー表示時のツールバー -->
       <div id="menu_toolbar" style="display: none;">
         <div class="row">
