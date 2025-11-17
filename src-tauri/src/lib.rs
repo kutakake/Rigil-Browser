@@ -17,7 +17,6 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-extern crate reqwest;
 
 // URLを正規化する関数
 fn normalize_url(name: &str) -> String {
@@ -43,7 +42,7 @@ fn get_base_url(url: &str) -> String {
     let mut base_url = String::new();
     let mut slash_count = 0;
 
-    for (i, &ch) in url_chars.iter().enumerate() {
+    for (_i, &ch) in url_chars.iter().enumerate() {
         base_url.push(ch);
         if ch == '/' {
             slash_count += 1;
