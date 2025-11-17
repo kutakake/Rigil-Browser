@@ -233,7 +233,6 @@ use wreq::Client;
 use wreq_util::Emulation;
 
 async fn gethtml(url: &str) -> wreq::Result<String> {
-    //let client = reqwest::blocking::Client::new();
     let client = Client::builder()
         .emulation(Emulation::Firefox139)
         .build()?;
@@ -291,22 +290,13 @@ async fn gethtml(url: &str) -> wreq::Result<String> {
         url_without_query = format!("{}{}", url_without_query, url_vec[i]);
         i += 1;
     }
-    let resp = client.get(url_without_query).query(&query).send().await?;
-    let text = resp.text().await?;
-    Ok(text)
-    /*
-    match client.get(url_without_query).query(&query).send() {
-        Ok(html) => return html.text().unwrap(),
 
-        Err(e) => {
-            println!("{}", e);
-            return format!(
-                "{}{}",
-                "Oops! Something went wrong. The entered url is: ", url
-            );
-        }
+    match client.get(url_without_query).query(&query).send().await {
+        Ok(html) => return html.text().await,
+
+        Err(e) => return Err(e),
     };
-    */
+
 }
 
 #[tauri::command]
