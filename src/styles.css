@@ -15,7 +15,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-text-size-adjust: 100%;
-    
+
     /* カスタムテーマ用変数 */
     --base-color: #f6f6f6;
     --accent-color: #4CAF50;
@@ -24,7 +24,7 @@
     --accent-active: #3d8b40;
     --toolbar-color: #ffffff;
     --link-color: #646cff;
-    
+
     /* フォントサイズ用変数 */
     --content-font-size: 16px;
 }
@@ -35,6 +35,10 @@ html, body {
     width: 100%;
     height: 100%;
     background-color: inherit;
+}
+
+#body1 {
+    width: 100vw;
 }
 
 .container {
@@ -215,7 +219,7 @@ button {
     :root {
         color: #f6f6f6;
         background-color: #2f2f2f;
-        
+
         /* ダークモード用のカスタム変数 */
         --base-color: #2f2f2f;
         --toolbar-color: #3a3a3a;
@@ -235,43 +239,43 @@ button {
     button:active {
         background-color: #0f0f0f69;
     }
-    
+
     /* ダークモードでの下部ツールバー */
     #bottom_toolbar {
         background-color: var(--toolbar-color, #2f2f2f);
         border-top: 1px solid #444;
     }
-    
+
     /* ダークモードでの新しいタブボタン */
     #add_tab_button {
         background-color: var(--accent-color, #2E7D32);
         color: #ffffff;
     }
-    
+
     #add_tab_button:hover {
         background-color: var(--accent-hover, #388E3C);
     }
-    
+
     #add_tab_button:active {
         background-color: var(--accent-active, #1B5E20);
     }
-    
+
     /* ダークモードでのメニューボタン */
     #head_contents button,
     #menu_toolbar button:first-child {
         background-color: var(--accent-color, #0f0f0f98);
         color: #ffffff;
     }
-    
+
     /* ダークモードでのタブボタン */
     .tab-close-button {
         background-color: #666;
     }
-    
+
     .tab-close-button:hover {
         background-color: #555;
     }
-    
+
     .tab-title-button {
         background-color: var(--accent-color, #2E7D32);
         color: #ffffff;
@@ -606,67 +610,67 @@ button {
         background-color: #888;
         color: #ffffff;
     }
-    
+
     #settings_button:hover {
         background-color: #999;
     }
-    
+
     #settings_button:active {
         background-color: #777;
     }
-    
+
     .settings_container {
         background-color: #2f2f2f;
         color: #f6f6f6;
     }
-    
+
     .settings_header {
         border-bottom: 1px solid #444;
     }
-    
+
     .settings_header h2 {
         color: #f6f6f6;
     }
-    
+
     .settings_section h3 {
         color: #f6f6f6;
         border-bottom: 2px solid #4CAF50;
     }
-    
+
     .setting_item label {
         color: #ccc;
     }
-    
+
     .setting_item select {
         background-color: #444;
         color: #f6f6f6;
         border: 1px solid #666;
     }
-    
+
     .setting_item input[type="range"] {
         background-color: #444;
     }
-    
+
     .color_settings {
         background-color: #3a3a3a;
         border: 1px solid #555;
     }
-    
+
     .color_input_group input[type="color"] {
         border: 1px solid #666;
     }
-    
+
     .color_input_group input[type="text"] {
         background-color: #444;
         color: #f6f6f6;
         border: 1px solid #666;
     }
-    
+
     .reset_button {
         background-color: #777;
         color: #f6f6f6;
     }
-    
+
     .reset_button:hover {
         background-color: #888;
     }

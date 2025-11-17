@@ -14,10 +14,11 @@ tauri-build = { version = "2.0.0-rc.0", features = [] }
 tauri = { version = "2.0.0-rc.0", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-reqwest = { version = "*", default-features = false, features = ["rustls-tls", "blocking"] }
 tokio = { version = "*", features = ["full"] }
 tauri-plugin-shell = "2.0.0-rc.0"
 reader_mode_maker = { path = "./reader_mode_maker" }
+wreq = { version = "*", features = ["full"] }
+wreq-util = "*"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
