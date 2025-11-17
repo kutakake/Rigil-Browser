@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use tauri::Manager;
+use tauri::{Manager, Result};
 
 #[derive(Serialize, Deserialize)]
 struct TabData {
@@ -213,24 +213,30 @@ fn parse_html_to_text(html: &str, base_url: &str, current_url: &str) -> String {
 }
 
 #[tauri::command]
-fn greet(name: &str) -> String {
+async fn greet(name: &str) -> Result<String> {
     if name.is_empty() {
-        return String::new();
+        return Ok(String::new());
     }
 
     if name.contains("rigil:newtab") {
-        return "<title>New tab</title>New tab".to_string();
+        return Ok("<title>New tab</title>New tab".to_string());
     }
 
     let normalized_url = normalize_url(name);
     let base_url = get_base_url(&normalized_url);
-    let html_body = gethtml(&normalized_url);
+    let html_body = gethtml(&normalized_url).await.unwrap();
 
-    parse_html_to_text(&html_body, &base_url, &normalized_url)
+    Ok(parse_html_to_text(&html_body, &base_url, &normalized_url))
 }
 
-fn gethtml(url: &str) -> String {
-    let client = reqwest::blocking::Client::new();
+use wreq::Client;
+use wreq_util::Emulation;
+
+async fn gethtml(url: &str) -> wreq::Result<String> {
+    //let client = reqwest::blocking::Client::new();
+    let client = Client::builder()
+        .emulation(Emulation::Firefox139)
+        .build()?;
     let mut query = vec![];
     let url_length = url.len();
     let url_vec: Vec<char> = url.chars().collect();
@@ -285,6 +291,10 @@ fn gethtml(url: &str) -> String {
         url_without_query = format!("{}{}", url_without_query, url_vec[i]);
         i += 1;
     }
+    let resp = client.get(url_without_query).query(&query).send().await?;
+    let text = resp.text().await?;
+    Ok(text)
+    /*
     match client.get(url_without_query).query(&query).send() {
         Ok(html) => return html.text().unwrap(),
 
@@ -296,10 +306,11 @@ fn gethtml(url: &str) -> String {
             );
         }
     };
+    */
 }
 
 #[tauri::command]
-async fn save_tabs(app: tauri::AppHandle, tabs: String, current_tab_number: i32, current_page_number: i32) -> Result<String, String> {
+async fn save_tabs(app: tauri::AppHandle, tabs: String, current_tab_number: i32, current_page_number: i32) -> std::result::Result<String, String> {
     let tab_data = TabData {
         tabs,
         current_tab_number,
@@ -327,7 +338,7 @@ async fn save_tabs(app: tauri::AppHandle, tabs: String, current_tab_number: i32,
 }
 
 #[tauri::command]
-async fn read_tabs(app: tauri::AppHandle) -> Result<String, String> {
+async fn read_tabs(app: tauri::AppHandle) -> std::result::Result<String, String> {
     // アプリデータディレクトリのパスを取得（WindowsとAndroidの両方に対応）
     let app_data_dir = app.path().app_data_dir()
         .or_else(|_| app.path().app_local_data_dir())
