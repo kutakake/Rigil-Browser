@@ -13,6 +13,7 @@ Search
 
 ## Attention
 Rigil Browser with proxy on Android is broken. I'm searching the reason.
+
 URL is broken when page is transitioned.
 
 # JA
@@ -28,4 +29,5 @@ URL is broken when page is transitioned.
 
 ## 注意
 AndroidでのRigilブラウザのプロキシ接続機能は壊れています。原因を調査しています。
+
 ページ遷移時にしばしばURLが壊れます。
