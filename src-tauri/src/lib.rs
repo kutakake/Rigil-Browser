@@ -17,10 +17,45 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
+fn is_safe_url(url: &str) -> bool {
+    let url_lower = url.trim().to_lowercase();
+    
+    // 危険なスキームをチェック
+    let dangerous_schemes = ["javascript:", "data:", "vbscript:", "file:"];
+    for scheme in dangerous_schemes.iter() {
+        if url_lower.starts_with(scheme) {
+            return false;
+        }
+    }
+    
+    true
+}
 
-// URLを正規化する関数
+fn escape_html(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&#x27;")
+}
+
+fn escape_js_string(s: &str) -> String {
+    s.replace('\\', "\\\\")
+        .replace('\n', "\\n")
+        .replace('\r', "\\r")
+        .replace('\t', "\\t")
+        .replace('"', "\\\"")
+        .replace('\'', "\\'")
+}
+
+// URL を正規化する関数
 fn normalize_url(name: &str) -> String {
     if name.is_empty() {
+        return String::new();
+    }
+
+    // 危険な URL はブロック
+    if !is_safe_url(name) {
         return String::new();
     }
 
@@ -36,7 +71,7 @@ fn normalize_url(name: &str) -> String {
     namestring
 }
 
-// ベースURLを取得する関数
+// ベース URL を取得する関数
 fn get_base_url(url: &str) -> String {
     let url_chars: Vec<char> = url.chars().collect();
     let mut base_url = String::new();
@@ -63,7 +98,7 @@ fn get_base_url(url: &str) -> String {
     base_url
 }
 
-// 相対URLを絶対URLに変換する関数
+// 相対 URL を絶対 URL に変換する関数
 fn resolve_relative_url(href: &str, base_url: &str, current_url: &str) -> String {
     if href.contains("http") {
         return href.to_string();
@@ -94,7 +129,7 @@ fn resolve_relative_url(href: &str, base_url: &str, current_url: &str) -> String
     }
 }
 
-// hrefを抽出する関数
+// href を抽出する関数
 fn extract_href(tag: &str) -> String {
     let tag_chars: Vec<char> = tag.chars().collect();
     let mut href = String::new();
@@ -147,7 +182,7 @@ fn process_link_tag(tag: &str, contents: &[char], i: &mut usize, base_url: &str,
                 *i = peek_i + 1;
                 break;
             } else if peek_tag.starts_with("<a ") || peek_tag == "<a>" {
-                // ネストしたaタグ
+                // ネストした a タグ
                 tag_depth += 1;
             }
 
@@ -160,20 +195,23 @@ fn process_link_tag(tag: &str, contents: &[char], i: &mut usize, base_url: &str,
         }
     }
 
-    // リンクテキストが空の場合はURLを使用
+    // リンクテキストが空の場合は URL を使用
     let display_text = if link_content.trim().is_empty() {
         resolved_href.clone()
     } else {
         link_content.trim().to_string()
     };
 
+    let escaped_href = escape_js_string(&resolved_href);
+    let escaped_display_text = escape_html(&display_text);
+
     format!(
         "<button id=\"hreftag\" onclick=\"javascript:{{document.getElementById('greet-input').value='{}';window.globalFunction.greet()}}\">{}</button>",
-        resolved_href, display_text
+        escaped_href, escaped_display_text
     )
 }
 use reader_mode_maker;
-// HTMLを解析してテキストに変換する関数
+// HTML を解析してテキストに変換する関数
 fn parse_html_to_text(html: &str, base_url: &str, current_url: &str) -> String {
     let culled_html = reader_mode_maker::culling(html);
     let contents: Vec<char> = culled_html.chars().collect();
@@ -222,10 +260,18 @@ async fn greet(name: &str) -> Result<String> {
     }
 
     let normalized_url = normalize_url(name);
-    let base_url = get_base_url(&normalized_url);
-    let html_body = gethtml(&normalized_url).await.unwrap();
+    
+    // 正規化後に空になった場合はエラーを返す
+    if normalized_url.is_empty() {
+        return Ok("<title>Error</title>無効な URL です".to_string());
+    }
 
-    Ok(parse_html_to_text(&html_body, &base_url, &normalized_url))
+    let base_url = get_base_url(&normalized_url);
+    
+    match gethtml(&normalized_url).await {
+        Ok(html_body) => Ok(parse_html_to_text(&html_body, &base_url, &normalized_url)),
+        Err(e) => Ok(format!("<title>Error</title>ページの取得に失敗しました：{}", e)),
+    }
 }
 
 use wreq::Client;
@@ -308,44 +354,44 @@ async fn save_tabs(app: tauri::AppHandle, tabs: String, current_tab_number: i32,
 
     let json_data = serde_json::to_string(&tab_data).map_err(|e| e.to_string())?;
 
-    // アプリデータディレクトリのパスを取得（WindowsとAndroidの両方に対応）
+    // アプリデータディレクトリのパスを取得（Windows と Android の両方に対応）
     let app_data_dir = app.path().app_data_dir()
         .or_else(|_| app.path().app_local_data_dir())
-        .map_err(|e| format!("アプリデータディレクトリの取得に失敗: {}", e))?;
+        .map_err(|e| format!("アプリデータディレクトリの取得に失敗：{}", e))?;
     let rigil_dir = app_data_dir.join("rigil");
     let tabs_file = rigil_dir.join("tabs.json");
 
     // ディレクトリが存在しない場合は作成
     if !rigil_dir.exists() {
-        std::fs::create_dir_all(&rigil_dir).map_err(|e| format!("ディレクトリ作成エラー: {}", e))?;
+        std::fs::create_dir_all(&rigil_dir).map_err(|e| format!("ディレクトリ作成エラー：{}", e))?;
     }
 
     // ファイルに書き込み
-    std::fs::write(&tabs_file, &json_data).map_err(|e| format!("ファイル書き込みエラー: {}", e))?;
+    std::fs::write(&tabs_file, &json_data).map_err(|e| format!("ファイル書き込みエラー：{}", e))?;
 
     Ok("保存完了".to_string())
 }
 
 #[tauri::command]
 async fn read_tabs(app: tauri::AppHandle) -> std::result::Result<String, String> {
-    // アプリデータディレクトリのパスを取得（WindowsとAndroidの両方に対応）
+    // アプリデータディレクトリのパスを取得（Windows と Android の両方に対応）
     let app_data_dir = app.path().app_data_dir()
         .or_else(|_| app.path().app_local_data_dir())
-        .map_err(|e| format!("アプリデータディレクトリの取得に失敗: {}", e))?;
+        .map_err(|e| format!("アプリデータディレクトリの取得に失敗：{}", e))?;
     let rigil_dir = app_data_dir.join("rigil");
     let tabs_file = rigil_dir.join("tabs.json");
 
-    // ファイルが存在しない場合はnullを返す
+    // ファイルが存在しない場合は null を返す
     if !tabs_file.exists() {
         return Ok("null".to_string());
     }
 
     // ファイルを読み込み
-    let json_data = std::fs::read_to_string(&tabs_file).map_err(|e| format!("ファイル読み込みエラー: {}", e))?;
+    let json_data = std::fs::read_to_string(&tabs_file).map_err(|e| format!("ファイル読み込みエラー：{}", e))?;
 
-    // JSONをパース
-    let tab_data: TabData = serde_json::from_str(&json_data).map_err(|e| format!("JSON解析エラー: {}", e))?;
+    // JSON をパース
+    let tab_data: TabData = serde_json::from_str(&json_data).map_err(|e| format!("JSON 解析エラー：{}", e))?;
 
-    // タブデータ全体をJSONとして返す
-    Ok(serde_json::to_string(&tab_data).map_err(|e| format!("JSON変換エラー: {}", e))?)
+    // タブデータ全体を JSON として返す
+    Ok(serde_json::to_string(&tab_data).map_err(|e| format!("JSON 変換エラー：{}", e))?)
 }
