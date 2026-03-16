@@ -1,5 +1,11 @@
 // タブ管理機能
 
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 // タブ HTML を生成する共通関数
 function renderTabsHTML() {
   let tabsString = "";
@@ -7,7 +13,7 @@ function renderTabsHTML() {
   
   for (let i = 0; i < tabs.length; i++) {
     const tabTitle = getTabTitle(i);
-    tabsString += createTabItemHTML(i, tabTitle, closeButtonPosition);
+    tabsString += createTabItemHTML(i, escapeHtml(tabTitle), closeButtonPosition);
   }
   return tabsString;
 }
@@ -85,7 +91,7 @@ function handleError(error, context) {
   console.error(`[${context}]`, error);
   const errorMessageEl = document.getElementById("errormessage");
   if (errorMessageEl) {
-    errorMessageEl.innerHTML = error.message || String(error);
+    errorMessageEl.textContent = error.message || String(error);
   }
 }
 
