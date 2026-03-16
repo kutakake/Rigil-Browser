@@ -1,72 +1,91 @@
 // タブ管理機能
 
+// タブ HTML を生成する共通関数
+function renderTabsHTML() {
+  let tabsString = "";
+  const closeButtonPosition = localStorage.getItem("tab_close_button_position") || "left";
+  
+  for (let i = 0; i < tabs.length; i++) {
+    const tabTitle = getTabTitle(i);
+    tabsString += createTabItemHTML(i, tabTitle, closeButtonPosition);
+  }
+  return tabsString;
+}
+
+// タブタイトルを取得する関数
+function getTabTitle(index) {
+  return tabs[index].title[tabs[index].page_number] || "New tab";
+}
+
+// 単一のタブアイテム HTML を生成する関数
+function createTabItemHTML(index, tabTitle, closeButtonPosition) {
+  if (closeButtonPosition === "left") {
+    return `<div class='tab-item'>
+      <button class='tab-close-button' onclick='window.globalFunction.remove_tab(${index})'>×</button>
+      <button class='tab-title-button' onclick='window.globalFunction.switch_tab(${index})'>
+        <nobr>${tabTitle}</nobr>
+      </button>
+    </div>`;
+  } else {
+    return `<div class='tab-item'>
+      <button class='tab-title-button' onclick='window.globalFunction.switch_tab(${index})'>
+        <nobr>${tabTitle}</nobr>
+      </button>
+      <button class='tab-close-button' onclick='window.globalFunction.remove_tab(${index})'>×</button>
+    </div>`;
+  }
+}
+
 function show_hide_tabs() {
   try {
-    if (tabs_shown == 0) {
+    if (tabs_shown === 0) {
       tabs_shown = 1;
       
       // 下部ツールバーをメニュー表示用に切り替え
-      document.getElementById("normal_toolbar").style.display = "none";
-      document.getElementById("menu_toolbar").style.display = "block";
+      toggleToolbars(true);
       
-      // タブメニューの内容を生成（追加ボタンは削除）
-      let tabs_string = "";
-      const closeButtonPosition = localStorage.getItem("tab_close_button_position") || "left";
-      
-      for (let i = 0; i < tabs.length; i++) {
-        const tabTitle = tabs[i].title[tabs[i].page_number] || "New tab";
-        
-        if (closeButtonPosition === "left") {
-          tabs_string +=
-              "<div class='tab-item'>" +
-              "<button class='tab-close-button' onclick='window.globalFunction.remove_tab(" +
-              i +
-              ")'>×</button>" +
-              "<button class='tab-title-button' onclick='window.globalFunction.switch_tab(" +
-              i +
-              ")'>" +
-              "<nobr>" +
-              tabTitle +
-              "</nobr>" +
-              "</button>" +
-              "</div>";
-        } else {
-          tabs_string +=
-              "<div class='tab-item'>" +
-              "<button class='tab-title-button' onclick='window.globalFunction.switch_tab(" +
-              i +
-              ")'>" +
-              "<nobr>" +
-              tabTitle +
-              "</nobr>" +
-              "</button>" +
-              "<button class='tab-close-button' onclick='window.globalFunction.remove_tab(" +
-              i +
-              ")'>×</button>" +
-              "</div>";
-        }
-      }
-      tab_element.innerHTML = tabs_string;
-      tab_element.style.visibility = "visible";
-      tab_element.style.opacity = "1";
-      tab_element.style.transition = "opacity 0.3s ";
+      // タブメニューの内容を生成
+      tab_element.innerHTML = renderTabsHTML();
+      showTabElement();
     } else {
       tabs_shown = 0;
       
       // 下部ツールバーを通常表示に戻す
-      document.getElementById("menu_toolbar").style.display = "none";
-      document.getElementById("normal_toolbar").style.display = "block";
-      
-      tab_element.style.opacity = "0";
-      tab_element.style.transition = "opacity 0.3s ";
-      tabs_visibility_interval = window.setInterval(
-          collapse_tabs_visibility,
-          100,
-      );
+      toggleToolbars(false);
+      hideTabElement();
     }
   } catch(e) {
-    alert(e);
-    document.getElementById("errormessage").innerHTML = e;
+    handleError(e, "show_hide_tabs");
+  }
+}
+
+// ツールバーの切り替え
+function toggleToolbars(showMenuToolbar) {
+  document.getElementById("normal_toolbar").style.display = showMenuToolbar ? "none" : "block";
+  document.getElementById("menu_toolbar").style.display = showMenuToolbar ? "block" : "none";
+}
+
+// タブ要素を表示
+function showTabElement() {
+  tab_element.innerHTML = renderTabsHTML();
+  tab_element.style.visibility = "visible";
+  tab_element.style.opacity = "1";
+  tab_element.style.transition = "opacity 0.3s";
+}
+
+// タブ要素を非表示
+function hideTabElement() {
+  tab_element.style.opacity = "0";
+  tab_element.style.transition = "opacity 0.3s";
+  tabs_visibility_interval = window.setInterval(collapse_tabs_visibility, 100);
+}
+
+// エラーハンドリングの共通関数
+function handleError(error, context) {
+  console.error(`[${context}]`, error);
+  const errorMessageEl = document.getElementById("errormessage");
+  if (errorMessageEl) {
+    errorMessageEl.innerHTML = error.message || String(error);
   }
 }
 
@@ -131,58 +150,34 @@ function add_tab() {
 }
 
 function remove_tab(tab_number) {
+  // タブを削除
   tabs.splice(tab_number, 1);
-  if (tabs.length == 0) {
-    tabs = [newtab];
-  } else if (tab_number < current_tab_number) {
-    current_tab_number--;
-  } else if (tab_number == current_tab_number) {
-    current_tab_number--;
-    current_page_number = tabs[current_tab_number].page_number;
-    current_page_url = tabs[current_tab_number].page_number;
-    body_element.innerHTML =
-      tabs[current_tab_number].contents[current_page_number];
-  }
-
-  // タブの再描画部分を修正（追加ボタンは削除）
-  let tabs_string = "";
-  const closeButtonPosition = localStorage.getItem("tab_close_button_position") || "left";
   
-  for (let i = 0; i < tabs.length; i++) {
-    // タイトルの参照方法を修正
-    const tabTitle = tabs[i].title[tabs[i].page_number] || "New tab";
-    
-    if (closeButtonPosition === "left") {
-      tabs_string +=
-        "<div class='tab-item'>" +
-        "<button class='tab-close-button' onclick='window.globalFunction.remove_tab(" +
-        i +
-        ")'>×</button>" +
-        "<button class='tab-title-button' onclick='window.globalFunction.switch_tab(" +
-        i +
-        ")'>" +
-        "<nobr>" +
-        tabTitle +
-        "</nobr>" +
-        "</button>" +
-        "</div>";
-    } else {
-      tabs_string +=
-        "<div class='tab-item'>" +
-        "<button class='tab-title-button' onclick='window.globalFunction.switch_tab(" +
-        i +
-        ")'>" +
-        "<nobr>" +
-        tabTitle +
-        "</nobr>" +
-        "</button>" +
-        "<button class='tab-close-button' onclick='window.globalFunction.remove_tab(" +
-        i +
-        ")'>×</button>" +
-        "</div>";
-    }
+  // タブが空の場合は新規タブを作成
+  if (tabs.length === 0) {
+    tabs = [newtab];
   }
-  tab_element.innerHTML = tabs_string;
-
+  
+  // 現在のタブ番号を更新
+  updateCurrentTabAfterRemoval(tab_number);
+  
+  // タブの再描画
+  tab_element.innerHTML = renderTabsHTML();
+  
   save_status();
+}
+
+// タブ削除後の current_tab_number を更新
+function updateCurrentTabAfterRemoval(removedTabIndex) {
+  if (removedTabIndex < current_tab_number) {
+    current_tab_number--;
+  } else if (removedTabIndex === current_tab_number) {
+    current_tab_number = Math.max(0, current_tab_number - 1);
+    
+    // 新しいタブの状態を設定
+    const newPageNumber = tabs[current_tab_number].page_number || "0";
+    current_page_number = parseInt(newPageNumber);
+    current_page_url = tabs[current_tab_number].urls[current_page_number] || "rigil:newtab";
+    body_element.innerHTML = tabs[current_tab_number].contents[current_page_number] || "New tab";
+  }
 } 

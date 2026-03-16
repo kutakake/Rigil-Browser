@@ -1,21 +1,40 @@
 // イベントリスナーとグローバル関数の設定
 
-// DOMContentLoadedイベントリスナー
+// グローバル関数を定義する共通関数
+function initializeGlobalFunctions() {
+  window.globalFunction = {
+    // コア機能
+    greet,
+    reflesh_page,
+    navigateHistory,
+    
+    // タブ管理
+    show_hide_tabs,
+    switch_tab,
+    add_tab,
+    remove_tab,
+    
+    // 設定画面
+    open_settings,
+    close_settings,
+    save_settings,
+    reset_theme,
+    change_language,
+    
+    // プライバシー
+    clear_history,
+    clear_cache,
+    
+    // プロキシ機能
+    test_proxy_connection,
+    get_page_via_proxy
+  };
+}
+
+// DOMContentLoaded イベントリスナー
 document.addEventListener("DOMContentLoaded", async function() {
-  // グローバル関数の設定（他のファイルが読み込まれた後に実行）
-  window.globalFunction = [];
-  window.globalFunction.greet = greet;
-  window.globalFunction.reflesh_page = reflesh_page;
-  window.globalFunction.show_hide_tabs = show_hide_tabs;
-  window.globalFunction.switch_tab = switch_tab;
-  window.globalFunction.add_tab = add_tab;
-  window.globalFunction.remove_tab = remove_tab;
-  window.globalFunction.open_settings = open_settings;
-  window.globalFunction.close_settings = close_settings;
-  window.globalFunction.clear_history = clear_history;
-  window.globalFunction.clear_cache = clear_cache;
-  window.globalFunction.reset_theme = reset_theme;
-  window.globalFunction.change_language = change_language;
+  // グローバル関数の設定
+  initializeGlobalFunctions();
 
   // アプリの初期化
   await initialize_app();

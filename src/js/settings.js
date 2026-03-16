@@ -1,6 +1,98 @@
 // 設定画面とテーマ機能
 
-// 設定画面の機能
+// ==================== 共通ヘルパー関数 ====================
+
+// DOM 要素を安全に取得
+function getElementByIdSafe(id) {
+  const element = document.getElementById(id);
+  if (!element) {
+    console.warn(`Element not found: ${id}`);
+  }
+  return element;
+}
+
+// 要素の値を取得
+function getElementValue(id) {
+  const element = getElementByIdSafe(id);
+  return element ? (element.value ?? element.checked) : null;
+}
+
+// 要素の値を設定
+function setElementValue(id, value) {
+  const element = getElementByIdSafe(id);
+  if (element !== null) {
+    if (element.type === 'checkbox') {
+      element.checked = value;
+    } else {
+      element.value = value;
+    }
+  }
+}
+
+// localStorage から設定値を取得（デフォルト値付き）
+function getSettingValue(key, defaultValue) {
+  const stored = localStorage.getItem(key);
+  return stored !== null ? stored : defaultValue;
+}
+
+// localStorage に設定値を保存
+function setSettingValue(key, value) {
+  localStorage.setItem(key, value);
+}
+
+// チェックボックスの設定をロード
+function loadCheckboxSetting(id, defaultValue) {
+  const checkbox = getElementByIdSafe(id);
+  if (checkbox !== null) {
+    const storedValue = getSettingValue(id, String(defaultValue));
+    checkbox.checked = storedValue === 'true';
+  }
+}
+
+// チェックボックスの設定をセーブ
+function saveCheckboxSetting(id) {
+  const checkbox = getElementByIdSafe(id);
+  if (checkbox !== null) {
+    setSettingValue(id, String(checkbox.checked));
+  }
+}
+
+// カラー設定をロード
+function loadColorSettings() {
+  const colors = [
+    { key: 'base_color', default: '#f6f6f6' },
+    { key: 'accent_color', default: '#4CAF50' },
+    { key: 'text_color', default: '#0f0f0f' },
+    { key: 'link_color', default: '#646cff' }
+  ];
+  
+  colors.forEach(color => {
+    const value = getSettingValue(color.key, color.default);
+    setElementValue(`${color.key}`, value);
+    setElementValue(`${color.key}_text`, value);
+  });
+}
+
+// カラー設定をセーブ
+function saveColorSettings() {
+  const colors = ['base_color', 'accent_color', 'text_color', 'link_color'];
+  
+  colors.forEach(color => {
+    const pickerElement = getElementByIdSafe(color);
+    if (pickerElement !== null) {
+      const value = pickerElement.value;
+      setSettingValue(color, value);
+      // テキスト入力も同期
+      const textElement = getElementByIdSafe(`${color}_text`);
+      if (textElement !== null) {
+        textElement.value = value;
+      }
+    }
+  });
+}
+
+// ==================== 設定画面の機能 ====================
+
 function open_settings() {
   const settingsScreen = document.getElementById("settings_screen");
   settingsScreen.style.display = "flex";
@@ -67,69 +159,38 @@ function close_settings() {
 
 function load_settings() {
   // テーマプリセット設定
-  const themePreset = localStorage.getItem("theme_preset") || "auto";
-  document.getElementById("theme_preset").value = themePreset;
+  const themePreset = getSettingValue("theme_preset", "auto");
+  setElementValue("theme_preset", themePreset);
   
-  // カスタムカラー設定
-  const baseColor = localStorage.getItem("base_color") || "#f6f6f6";
-  const accentColor = localStorage.getItem("accent_color") || "#4CAF50";
-  const textColor = localStorage.getItem("text_color") || "#0f0f0f";
-  const linkColor = localStorage.getItem("link_color") || "#646cff";
-  
-  document.getElementById("base_color").value = baseColor;
-  document.getElementById("base_color_text").value = baseColor;
-  document.getElementById("accent_color").value = accentColor;
-  document.getElementById("accent_color_text").value = accentColor;
-  document.getElementById("text_color").value = textColor;
-  document.getElementById("text_color_text").value = textColor;
-  document.getElementById("link_color").value = linkColor;
-  document.getElementById("link_color_text").value = linkColor;
+  // カスタムカラー設定をロード
+  loadColorSettings();
   
   // フォントサイズ設定
-  const fontSize = localStorage.getItem("font_size") || "16";
-  document.getElementById("font_size_slider").value = fontSize;
-  document.getElementById("font_size_value").textContent = fontSize + "px";
+  const fontSize = getSettingValue("font_size", "16");
+  setElementValue("font_size_slider", fontSize);
+  const fontSizeValueEl = document.getElementById("font_size_value");
+  if (fontSizeValueEl) {
+    fontSizeValueEl.textContent = fontSize + "px";
+  }
   
   // 言語設定
-  const languageSelect = document.getElementById("language_select");
+  const languageSelect = getElementByIdSafe("language_select");
   if (languageSelect && window.i18n) {
     languageSelect.value = window.i18n.getCurrentLanguage();
   }
   
-  // タブ自動保存設定
-  const autoSaveCheckbox = document.getElementById("auto_save_tabs");
-  if (autoSaveCheckbox) {
-    const autoSaveTabs = localStorage.getItem("auto_save_tabs") === "true";
-    autoSaveCheckbox.checked = autoSaveTabs;
-  }
-  
-  // 画像表示設定
-  const showImagesCheckbox = document.getElementById("show_images");
-  if (showImagesCheckbox) {
-    const showImages = localStorage.getItem("show_images") === "true";
-    showImagesCheckbox.checked = showImages;
-  }
+  // チェックボックス設定をロード
+  loadCheckboxSetting("auto_save_tabs", false);
+  loadCheckboxSetting("show_images", true);
   
   // タブの閉じるボタンの位置設定
-  const tabCloseButtonPosition = localStorage.getItem("tab_close_button_position") || "left";
-  const tabCloseButtonSelect = document.getElementById("tab_close_button_position");
-  if (tabCloseButtonSelect) {
-    tabCloseButtonSelect.value = tabCloseButtonPosition;
-  }
+  const tabCloseButtonPosition = getSettingValue("tab_close_button_position", "left");
+  setElementValue("tab_close_button_position", tabCloseButtonPosition);
   
-  // プロキシ設定
-  const useProxy = localStorage.getItem("use_proxy") === "true";
-  const proxyUrl = localStorage.getItem("proxy_url") || "http://127.0.0.1:8080";
-  
-  const useProxyCheckbox = document.getElementById("use_proxy");
-  const proxyUrlInput = document.getElementById("proxy_url");
-  
-  if (useProxyCheckbox) {
-    useProxyCheckbox.checked = useProxy;
-  }
-  if (proxyUrlInput) {
-    proxyUrlInput.value = proxyUrl;
-  }
+  // プロキシ設定をロード
+  loadCheckboxSetting("use_proxy", false);
+  const proxyUrl = getSettingValue("proxy_url", "http://127.0.0.1:8080");
+  setElementValue("proxy_url", proxyUrl);
   
   // プロキシ設定の表示/非表示を制御
   toggle_proxy_settings();
@@ -140,65 +201,37 @@ function load_settings() {
 
 function save_settings() {
   // テーマプリセット設定
-  const themePreset = document.getElementById("theme_preset").value;
-  localStorage.setItem("theme_preset", themePreset);
+  const themePreset = getElementValue("theme_preset");
+  setSettingValue("theme_preset", themePreset);
   
-  // カスタムカラー設定
-  const baseColor = document.getElementById("base_color").value;
-  const accentColor = document.getElementById("accent_color").value;
-  const textColor = document.getElementById("text_color").value;
-  const linkColor = document.getElementById("link_color").value;
-  
-  localStorage.setItem("base_color", baseColor);
-  localStorage.setItem("accent_color", accentColor);
-  localStorage.setItem("text_color", textColor);
-  localStorage.setItem("link_color", linkColor);
-  
-  // テキスト入力も同期
-  document.getElementById("base_color_text").value = baseColor;
-  document.getElementById("accent_color_text").value = accentColor;
-  document.getElementById("text_color_text").value = textColor;
-  document.getElementById("link_color_text").value = linkColor;
+  // カスタムカラー設定をセーブ
+  saveColorSettings();
   
   // フォントサイズ設定
-  const fontSize = document.getElementById("font_size_slider").value;
-  localStorage.setItem("font_size", fontSize);
+  const fontSize = getElementValue("font_size_slider");
+  setSettingValue("font_size", fontSize);
   apply_font_size(fontSize);
   
-  // タブ自動保存設定
-  const autoSaveCheckbox = document.getElementById("auto_save_tabs");
-  if (autoSaveCheckbox) {
-    const autoSaveTabs = autoSaveCheckbox.checked;
-    localStorage.setItem("auto_save_tabs", autoSaveTabs);
-  }
-  
-  // 画像表示設定
-  const showImagesCheckbox = document.getElementById("show_images");
-  if (showImagesCheckbox) {
-    const showImages = showImagesCheckbox.checked;
-    localStorage.setItem("show_images", showImages);
-  }
+  // チェックボックス設定をセーブ
+  saveCheckboxSetting("auto_save_tabs");
+  saveCheckboxSetting("show_images");
   
   // タブの閉じるボタンの位置設定
-  const tabCloseButtonPosition = document.getElementById("tab_close_button_position").value;
-  localStorage.setItem("tab_close_button_position", tabCloseButtonPosition);
+  const tabCloseButtonPosition = getElementValue("tab_close_button_position");
+  setSettingValue("tab_close_button_position", tabCloseButtonPosition);
   
-  // プロキシ設定
-  const useProxyCheckbox = document.getElementById("use_proxy");
-  const proxyUrlInput = document.getElementById("proxy_url");
-  
-  if (useProxyCheckbox) {
-    const useProxy = useProxyCheckbox.checked;
-    localStorage.setItem("use_proxy", useProxy);
-  }
-  
-  if (proxyUrlInput) {
-    const proxyUrl = proxyUrlInput.value;
-    localStorage.setItem("proxy_url", proxyUrl);
-  }
+  // プロキシ設定をセーブ
+  saveCheckboxSetting("use_proxy");
+  const proxyUrl = getElementValue("proxy_url");
+  setSettingValue("proxy_url", proxyUrl);
   
   // プロキシ設定の表示/非表示を制御
   toggle_proxy_settings();
+  
+  // カラー値を取得
+  const baseColor = localStorage.getItem("base_color") || "#f6f6f6";
+  const accentColor = localStorage.getItem("accent_color") || "#4CAF50";
+  const textColor = localStorage.getItem("text_color") || "#0f0f0f";
   
   // テーマを適用
   apply_theme(themePreset, baseColor, accentColor, textColor);
@@ -566,17 +599,26 @@ function isValidHexColor(hex) {
   return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(hex);
 }
 
-function sync_color_inputs(colorInput, textInput) {
-  const color = colorInput.value;
-  textInput.value = color;
+// カラーインプットの同期処理
+// colorPicker: input[type='color'], textInput: input[type='text']
+function sync_color_inputs(colorPicker, textInput) {
+  const color = colorPicker.value;
+  if (textInput) {
+    textInput.value = color;
+  }
   save_settings();
 }
 
-function sync_text_inputs(textInput, colorInput) {
+// テキストインプットからカラーピッカーへの同期
+function sync_text_inputs(textInput, colorPicker) {
   const text = textInput.value;
   if (isValidHexColor(text)) {
-    colorInput.value = text;
+    if (colorPicker) {
+      colorPicker.value = text;
+    }
     save_settings();
+  } else {
+    console.warn('無効な HEX カラー:', text);
   }
 }
 
