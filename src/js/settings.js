@@ -748,11 +748,29 @@ function initialize_app_settings() {
     }
   }
   
+  // アプリバージョンの取得と表示
+  loadAppVersion();
+  
   console.log("アプリ設定を初期化しました:", {
     theme: savedThemePreset,
     fontSize: savedFontSize + "px",
     currentUrl: current_page_url
   });
+}
+
+async function loadAppVersion() {
+  try {
+    const versionEl = document.getElementById("app_version");
+    if (!versionEl) return;
+    
+    const meta = await window.__TAURI__.core.invoke("tauri://metadata");
+    const version = meta.version || "0.1.1";
+    versionEl.textContent = `Rigil v${version}`;
+  } catch (e) {
+    console.warn("バージョン取得失敗:", e);
+    const versionEl = document.getElementById("app_version");
+    if (versionEl) versionEl.textContent = "Rigil v0.1.1";
+  }
 }
 
 // 言語切り替え関数
