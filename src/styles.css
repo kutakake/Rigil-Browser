@@ -383,6 +383,7 @@ button {
     background-color: var(--accent-color, #ffffff);
     border-color: var(--accent-color, transparent);
     color: var(--text-color, #0f0f0f);
+    height: 48px;
 }
 
 #head_contents button:hover,
