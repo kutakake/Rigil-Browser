@@ -1,5 +1,11 @@
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 use tauri::{Manager, Result};
+
+#[derive(Clone)]
+struct HttpState {
+    client: Arc<wreq::Client>,
+}
 
 #[derive(Serialize, Deserialize)]
 struct TabData {
@@ -8,10 +14,21 @@ struct TabData {
     current_page_number: i32,
 }
 
+use wreq::Client;
+use wreq_util::Emulation;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let http_client = Client::builder()
+        .emulation(Emulation::Firefox139)
+        .build()
+        .expect("HTTP client build failed");
+
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .manage(HttpState {
+            client: Arc::new(http_client),
+        })
         .invoke_handler(tauri::generate_handler![greet, save_tabs, read_tabs])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -254,7 +271,7 @@ fn parse_html_to_text(html: &str, base_url: &str, current_url: &str) -> String {
 }
 
 #[tauri::command]
-async fn greet(name: &str) -> Result<String> {
+async fn greet(name: &str, http_state: tauri::State<'_, HttpState>) -> Result<String> {
     if name.is_empty() {
         return Ok(String::new());
     }
@@ -264,27 +281,22 @@ async fn greet(name: &str) -> Result<String> {
     }
 
     let normalized_url = normalize_url(name);
-    
+
     // 正規化後に空になった場合はエラーを返す
     if normalized_url.is_empty() {
         return Ok("<title>Error</title>無効な URL です".to_string());
     }
 
     let base_url = get_base_url(&normalized_url);
-    
-    match gethtml(&normalized_url).await {
+    let client = http_state.client.clone();
+
+    match gethtml(&client, &normalized_url).await {
         Ok(html_body) => Ok(parse_html_to_text(&html_body, &base_url, &normalized_url)),
         Err(e) => Ok(format!("<title>Error</title>ページの取得に失敗しました：{}", e)),
     }
 }
 
-use wreq::Client;
-use wreq_util::Emulation;
-
-async fn gethtml(url: &str) -> wreq::Result<String> {
-    let client = Client::builder()
-        .emulation(Emulation::Firefox139)
-        .build()?;
+async fn gethtml(client: &wreq::Client, url: &str) -> wreq::Result<String> {
 
     let (url_without_query, query_str) = match url.split_once('?') {
         Some((base, qs)) => (base.to_string(), qs),
