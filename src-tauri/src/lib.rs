@@ -73,23 +73,27 @@ fn normalize_url(name: &str) -> String {
 
 // ベース URL を取得する関数
 fn get_base_url(url: &str) -> String {
-    let url_chars: Vec<char> = url.chars().collect();
-    let mut base_url = String::new();
     let mut slash_count = 0;
+    let mut end = None;
 
-    for (_i, &ch) in url_chars.iter().enumerate() {
-        base_url.push(ch);
+    for (byte_idx, ch) in url.char_indices() {
         if ch == '/' {
             slash_count += 1;
             if slash_count == 3 {
+                end = Some(byte_idx + ch.len_utf8());
                 break;
             }
         }
     }
 
-    // パス部分の処理
-    if slash_count == 3 && url.len() > base_url.len() {
-        let remaining_path = &url[base_url.len()..];
+    let base_part = match end {
+        Some(idx) => &url[..idx],
+        None => return url.to_string(),
+    };
+    let mut base_url = String::from(base_part);
+
+    if slash_count == 3 && end.is_some() {
+        let remaining_path = &url[end.unwrap()..];
         if let Some(last_slash_pos) = remaining_path.rfind('/') {
             base_url.push_str(&remaining_path[..=last_slash_pos]);
         }
@@ -281,67 +285,28 @@ async fn gethtml(url: &str) -> wreq::Result<String> {
     let client = Client::builder()
         .emulation(Emulation::Firefox139)
         .build()?;
-    let mut query = vec![];
-    let url_length = url.len();
-    let url_vec: Vec<char> = url.chars().collect();
-    //let mut queries: String = Default::default();
-    if url.contains("?") {
-        //クエリパラメータを取得
-        let mut i: usize = 0;
-        loop {
-            if url_vec[i] == '?' {
-                i += 1;
-                let mut key: String = String::from("");
-                let mut value: String = String::from("");
-                loop {
-                    if url_vec[i] == '=' {
-                        i += 1;
-                        loop {
-                            if i >= url_length {
-                                break;
-                            }
-                            if url_vec[i] == '&' {
-                                query.push((key.clone(), value.clone()));
-                                key = String::from("");
-                                value = String::from("");
-                                break;
-                                //push!(query, (&key, &value));
-                            }
-                            if url_vec[i] != '/' {
-                                value = format!("{}{}", value, url_vec[i]);
-                            }
-                            i += 1;
-                        }
-                    }
-                    if i >= url_length {
-                        query.push((key.clone(), value.clone()));
-                        break;
-                    }
-                    if url_vec[i] != '&' {
-                        key = format!("{}{}", key, url_vec[i]);
-                    }
-                    i += 1;
-                }
-            }
-            if i >= url_length {
-                break;
-            }
-            i += 1;
-        }
-    }
-    let mut url_without_query = String::from("");
-    let mut i = 0;
-    while i < url_length && url_vec[i] != '?' {
-        url_without_query = format!("{}{}", url_without_query, url_vec[i]);
-        i += 1;
-    }
 
-    match client.get(url_without_query).query(&query).send().await {
-        Ok(html) => return html.text().await,
-
-        Err(e) => return Err(e),
+    let (url_without_query, query_str) = match url.split_once('?') {
+        Some((base, qs)) => (base.to_string(), qs),
+        None => return client.get(url).send().await?.text().await,
     };
 
+    let mut query: Vec<(String, String)> = vec![];
+    for pair in query_str.split('&') {
+        if let Some((k, v)) = pair.split_once('=') {
+            let value = v.chars()
+                .filter(|&ch| ch != '/')
+                .collect::<String>();
+            query.push((k.to_string(), value));
+        } else {
+            query.push((pair.to_string(), String::new()));
+        }
+    }
+
+    match client.get(&url_without_query).query(&query).send().await {
+        Ok(html) => html.text().await,
+        Err(e) => Err(e),
+    }
 }
 
 #[tauri::command]
